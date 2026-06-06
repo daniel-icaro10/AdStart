@@ -1,0 +1,280 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Sistema de design adStart — dark premium "slate" (cinza-dominante)
+ * com azul (#2563eb) usado apenas como accent cirúrgico.
+ * Variáveis em RGB separado por espaço para suportar modificadores de opacidade
+ * do Tailwind: rgb(var(--token) / <alpha>).
+ */
+@layer base {
+  :root {
+    /* superfícies */
+    --background: 8 8 9; /* #080809 */
+    --foreground: 240 241 243; /* #f0f1f3 */
+    --card: 14 15 17; /* #0e0f11 */
+    --card-foreground: 240 241 243;
+    --popover: 20 21 23; /* #141517 */
+    --popover-foreground: 240 241 243;
+
+    /* primário = accent azul (CTAs) */
+    --primary: 37 99 235; /* #2563eb */
+    --primary-foreground: 240 241 243;
+
+    --secondary: 28 30 34; /* #1c1e22 */
+    --secondary-foreground: 240 241 243;
+
+    --muted: 28 30 34;
+    --muted-foreground: 145 153 168; /* #9199a8 */
+
+    --accent: 37 40 48; /* #252830 — superfície elevada/hover */
+    --accent-foreground: 240 241 243;
+
+    --destructive: 239 68 68;
+    --destructive-foreground: 240 241 243;
+
+    --border: 28 30 34; /* #1c1e22 */
+    --input: 28 30 34;
+    --ring: 37 99 235; /* foco azul */
+
+    /* accent azul (glows, preços, badges) */
+    --brand: 37 99 235; /* #2563eb */
+    --brand-hover: 59 130 246; /* #3b82f6 */
+
+    --radius: 0.625rem; /* 10px base */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Keyframes (prefixo ad-)                                             */
+/* ------------------------------------------------------------------ */
+@keyframes ad-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+@keyframes ad-pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 16px rgba(148, 163, 184, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(37, 99, 235, 0.4);
+  }
+}
+@keyframes ad-gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 200% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@keyframes ad-text-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 24px rgba(37, 99, 235, 0.6);
+  }
+}
+@keyframes ad-network-ping {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5);
+  }
+  70% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+@keyframes ad-icon-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes ad-data-stream {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(110vw);
+    opacity: 0;
+  }
+}
+@keyframes ad-rain-fall {
+  0% {
+    transform: translateY(-60px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(120vh);
+    opacity: 0;
+  }
+}
+@keyframes ad-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Utilitários de animação/efeito                                     */
+/* ------------------------------------------------------------------ */
+@layer utilities {
+  .ad-float {
+    animation: ad-float 7s ease-in-out infinite;
+  }
+  .ad-pulse-glow {
+    animation: ad-pulse-glow 3s ease-in-out infinite;
+  }
+  .ad-icon-pulse {
+    animation: ad-icon-pulse 2s ease-in-out infinite;
+  }
+  .ad-network-ping {
+    animation: ad-network-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  /* Texto com gradiente slate→azul + leve animação de shift. */
+  .ad-text-gradient {
+    background-image: linear-gradient(135deg, #eaecf0 0%, #a8b0be 50%, #2563eb 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: ad-gradient-shift 10s ease infinite;
+  }
+
+  /* Glow azul no hover de cards (combina com a cor da categoria). */
+  .ad-hover-glow {
+    transition:
+      transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .ad-hover-glow:hover {
+    box-shadow:
+      0 0 0 1px rgba(37, 99, 235, 0.25),
+      0 8px 28px -8px rgba(37, 99, 235, 0.35);
+  }
+
+  /* Skeleton shimmer. */
+  .ad-skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgb(var(--accent));
+  }
+  .ad-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06),
+      transparent
+    );
+    animation: ad-shimmer 1.8s infinite;
+  }
+
+  /* Linha de luz vertical do hero (rain-fall). */
+  .ad-rain {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(37, 99, 235, 0.6),
+      transparent
+    );
+    animation: ad-rain-fall linear infinite;
+    will-change: transform, opacity;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.4s ease-out both;
+  }
+
+  /* Scrollbar discreta. */
+  .scrollbar-subtle {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--border)) transparent;
+  }
+  .scrollbar-subtle::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+  .scrollbar-subtle::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--border));
+    border-radius: 9999px;
+  }
+  .scrollbar-subtle::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Acessibilidade: respeita quem prefere menos movimento. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .ad-rain {
+    display: none;
+  }
+}

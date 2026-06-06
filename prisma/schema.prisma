@@ -1,0 +1,95 @@
+// Prisma schema — Catálogo de Ativos (BMs)
+// SQLite para o MVP. Para migrar para Postgres: troque `provider` para "postgresql"
+// e ajuste DATABASE_URL no .env (o restante do schema é compatível).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // pooler (pgbouncer) — usado pelo app
+  directUrl = env("DIRECT_URL") // conexão direta — usada nas migrations
+}
+
+/// Uma BM (Business Manager) à venda/aluguel.
+model Asset {
+  id           String  @id @default(cuid())
+  codigo       String // ex: "P100", "BM 01"
+  titulo       String
+  moeda        String // "BRL" | "USD"
+  categoria    String // "DISPONIVEL" | "DOLAR" | "10K_50K" | "MAIS_50K" | "SEM_CATEGORIA"
+  anoCriacao   Int?
+  totalGastosBRL Float?
+  totalGastosUSD Float?
+  qtdContas    Int?
+  verificada   Boolean @default(false)
+  semDividas   Boolean @default(true)
+  semBloqueios Boolean @default(true)
+  statusVenda  String // "DISPONIVEL" | "RESERVADO" | "VENDIDO"
+  valor        Float   @default(0)
+  destaque     Boolean @default(false) // tag "Nova"
+  icone        String? // chave da bandeira/ícone (ex: "BR", "US")
+  conteudo     String? // descrição em texto livre (estilo Notion)
+  tier         Int? // tier da BM (1..3); null = nenhum
+
+  contas    AdAccount[] // contas de anúncio (CA 01, CA 02...)
+  imagens   AssetImage[] // imagens exibidas no modal de detalhes (até 3)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+/// Imagem de uma BM (data URL base64). Exibida no modal de detalhes.
+model AssetImage {
+  id      String @id @default(cuid())
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  data    String // data URL (base64)
+  ordem   Int    @default(0)
+}
+
+/// Configurações simples chave/valor (ex.: ordem das categorias na landing).
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+/// Conta de anúncio dentro de uma BM.
+model AdAccount {
+  id      String @id @default(cuid())
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  nome       String // "CA 01"
+  status     String // "ATIVA" | "NOVA" | etc
+  gastos     Float?
+  limiteMeta Float?
+  cicloLivre Float?
+  dividas    Float? @default(0)
+}
+
+/// Uma página (perfil/fanpage) à venda.
+model Page {
+  id         String  @id @default(cuid())
+  nome       String
+  nicho      String
+  kind       String // "COM" | "SEM" (com ou sem seguidores)
+  seguidores Int     @default(0)
+  anoCriacao Int?
+  status     String // "DISPONIVEL" | "RESERVADO" | "VENDIDO"
+  valor      Float
+  destaque   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Usuário administrador (sem registro público — criado via seed).
+model User {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  password String // hash bcrypt
+  name     String?
+  role     String  @default("ADMIN")
+}
