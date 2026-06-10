@@ -1,5 +1,11 @@
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Boxes, FileText, ListOrdered } from "lucide-react";
+import {
+  LayoutDashboard,
+  Boxes,
+  FileText,
+  ListOrdered,
+  Wallet,
+} from "lucide-react";
 
 export interface AdminNavItem {
   label: string;
@@ -25,4 +31,5 @@ export const adminNav: AdminNavItem[] = [
   { label: "Ativos", href: "/admin/ativos", icon: Boxes },
   { label: "Páginas", href: "/admin/paginas", icon: FileText },
   { label: "Categorias", href: "/admin/categorias", icon: ListOrdered },
+  { label: "Financeiro", href: "/admin/financeiro", icon: Wallet },
 ];
