@@ -1,31 +1,46 @@
 import { LayoutDashboard } from "lucide-react";
 
-/**
- * Dashboard — DELIBERADAMENTE EM BRANCO.
- * Apenas o placeholder. Widgets/gráficos serão adicionados depois.
- */
-export default function AdminDashboardPage() {
+import { getDashboardData } from "@/lib/dashboard";
+import { DashboardKpis } from "@/components/admin/dashboard/dashboard-kpis";
+import { DashboardAtalhos } from "@/components/admin/dashboard/dashboard-atalhos";
+import { DashboardAlertas } from "@/components/admin/dashboard/dashboard-alertas";
+import { DashboardCharts } from "@/components/admin/dashboard/dashboard-charts";
+import { DashboardFornecedores } from "@/components/admin/dashboard/dashboard-fornecedores";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminDashboardPage() {
+  const d = await getDashboardData();
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Visão geral do painel administrativo.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <LayoutDashboard className="h-6 w-6 text-brand" />
+            Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Visão geral da operação — estoque, resultado do mês e sinais de risco.
+          </p>
+        </div>
+        <DashboardAtalhos />
       </div>
 
-      <div className="flex min-h-[50vh] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 text-center">
-        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-muted-foreground">
-          <LayoutDashboard className="h-6 w-6" />
-        </span>
-        <p className="mt-4 text-sm font-medium text-muted-foreground">
-          Dashboard — em construção
-        </p>
-        <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-          Esqueleto pronto. Adicione widgets e novas sub-rotas em
-          src/app/admin/.
-        </p>
-      </div>
+      <DashboardKpis m={d.metricas} />
+
+      <DashboardAlertas
+        aging={d.aging}
+        agingWarn={d.agingWarn}
+        agingCrit={d.agingCrit}
+        reservados={d.reservadosTravados}
+        incompletos={d.incompletos}
+        incompletosTotal={d.incompletosTotal}
+      />
+
+      <DashboardCharts serie={d.serie} estoquePorCategoria={d.estoquePorCategoria} />
+
+      <DashboardFornecedores rows={d.fornecedores} />
     </div>
   );
 }

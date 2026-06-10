@@ -13,6 +13,7 @@ import { prisma } from "./prisma";
 import {
   decimalToNumber,
   calcularMetricas,
+  toBRL,
   periodoMesAtual,
   periodoMesAnterior,
   periodoUltimosDias,
@@ -46,6 +47,7 @@ export type {
 export {
   decimalToNumber,
   calcularMetricas,
+  toBRL,
   periodoMesAtual,
   periodoMesAnterior,
   periodoUltimosDias,
