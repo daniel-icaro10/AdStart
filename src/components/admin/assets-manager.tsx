@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { AssetForm } from "@/components/admin/asset-form";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { deleteAsset } from "@/app/admin/actions";
@@ -99,7 +100,7 @@ export function AssetsManager({
             <Badge className={TIER_BADGE_CLASS}>Tier {a.tier}</Badge>
           )}
           {a.destaque && (
-            <Badge className="border border-amber-500/30 bg-amber-500/15 text-amber-400">
+            <Badge className="border border-warning/30 bg-warning/15 text-warning">
               Nova
             </Badge>
           )}
@@ -117,7 +118,7 @@ export function AssetsManager({
         )}
 
         {a.valor > 0 && (
-          <div className="mt-2 border-t border-border pt-2 text-sm font-bold">
+          <div className="mt-2 border-t border-border pt-2 text-sm font-bold tabular-nums">
             {formatCurrency(a.valor, "BRL")}
           </div>
         )}
@@ -141,16 +142,19 @@ export function AssetsManager({
       </div>
 
       {assets.length === 0 ? (
-        <button
-          type="button"
-          onClick={openNew}
-          className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 py-16 text-center transition-colors hover:bg-card"
-        >
-          <Boxes className="h-8 w-8 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Nenhum ativo ainda. Clique para criar o primeiro.
-          </p>
-        </button>
+        <div className="rounded-xl border border-dashed border-border bg-card/40">
+          <EmptyState
+            icon={Boxes}
+            title="Nenhum ativo cadastrado ainda."
+            className="py-16"
+            action={
+              <Button onClick={openNew}>
+                <Plus className="h-4 w-4" />
+                Novo ativo
+              </Button>
+            }
+          />
+        </div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-subtle">
           {order.map((cat) => {
@@ -172,7 +176,7 @@ export function AssetsManager({
                 </div>
 
                 {items.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-border bg-card/40 p-6 text-center text-xs text-muted-foreground">
+                  <div className="rounded-lg border border-dashed border-border bg-card/40 p-6 text-center text-xs text-faint">
                     Vazia
                   </div>
                 ) : (

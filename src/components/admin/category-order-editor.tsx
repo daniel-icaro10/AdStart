@@ -74,8 +74,8 @@ export function CategoryOrderEditor({ initial }: { initial: Categoria[] }) {
               dragIndex === i && "opacity-50",
             )}
           >
-            <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <span className="w-5 text-center text-xs text-muted-foreground">
+            <GripVertical className="h-4 w-4 shrink-0 text-faint" />
+            <span className="w-5 text-center text-xs tabular-nums text-faint">
               {i + 1}
             </span>
             <span

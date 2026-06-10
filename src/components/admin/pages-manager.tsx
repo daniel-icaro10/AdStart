@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageForm } from "@/components/admin/page-form";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { deletePage } from "@/app/admin/actions";
@@ -26,8 +27,8 @@ import type { Page } from "@prisma/client";
 
 /** Colunas do board do admin, separadas por tipo (com/sem seguidores). */
 const COLUMNS: { kind: "COM" | "SEM"; label: string; accent: string }[] = [
-  { kind: "COM", label: "Com seguidores", accent: "bg-blue-500/60" },
-  { kind: "SEM", label: "Sem seguidores", accent: "bg-neutral-500/60" },
+  { kind: "COM", label: "Com seguidores", accent: "bg-primary/70" },
+  { kind: "SEM", label: "Sem seguidores", accent: "bg-faint" },
 ];
 
 /**
@@ -84,7 +85,7 @@ export function PagesManager({ pages }: { pages: Page[] }) {
             {STATUS_VENDA_META[status].label}
           </Badge>
           {p.destaque && (
-            <Badge className="border border-amber-500/30 bg-amber-500/15 text-amber-400">
+            <Badge className="border border-warning/30 bg-warning/15 text-warning">
               Nova
             </Badge>
           )}
@@ -94,7 +95,7 @@ export function PagesManager({ pages }: { pages: Page[] }) {
 
         <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
           {p.kind === "COM" ? (
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-1 tabular-nums">
               <Users className="h-3.5 w-3.5" />
               {formatInt(p.seguidores)} seguidores
             </span>
@@ -110,7 +111,7 @@ export function PagesManager({ pages }: { pages: Page[] }) {
           <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
             Valor
           </div>
-          <div className="text-xl font-bold">
+          <div className="text-xl font-bold tabular-nums">
             {formatCurrency(p.valor, "BRL")}
           </div>
         </div>
@@ -134,16 +135,19 @@ export function PagesManager({ pages }: { pages: Page[] }) {
       </div>
 
       {pages.length === 0 ? (
-        <button
-          type="button"
-          onClick={openNew}
-          className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 py-16 text-center transition-colors hover:bg-card"
-        >
-          <FileText className="h-8 w-8 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Nenhuma página ainda. Clique para criar a primeira.
-          </p>
-        </button>
+        <div className="rounded-xl border border-dashed border-border bg-card/40">
+          <EmptyState
+            icon={FileText}
+            title="Nenhuma página cadastrada ainda."
+            className="py-16"
+            action={
+              <Button onClick={openNew}>
+                <Plus className="h-4 w-4" />
+                Nova página
+              </Button>
+            }
+          />
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {COLUMNS.map((col) => {
@@ -159,7 +163,7 @@ export function PagesManager({ pages }: { pages: Page[] }) {
                 </div>
 
                 {items.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-border bg-card/40 p-6 text-center text-xs text-muted-foreground">
+                  <div className="rounded-lg border border-dashed border-border bg-card/40 p-6 text-center text-xs text-faint">
                     Nenhuma página nesta coluna.
                   </div>
                 ) : (
