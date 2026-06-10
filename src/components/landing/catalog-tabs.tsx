@@ -8,7 +8,7 @@ import { CatalogExplorer } from "./catalog-explorer";
 import { PagesSection } from "./pages-section";
 import type { Categoria } from "@/lib/constants";
 import type { AssetWithContas } from "@/types";
-import type { Page } from "@prisma/client";
+import type { PagePublic } from "@/types";
 
 type View = "BMS" | "PAGINAS";
 
@@ -25,7 +25,7 @@ export function CatalogTabs({
   order,
 }: {
   assets: AssetWithContas[];
-  pages: Page[];
+  pages: PagePublic[];
   order?: Categoria[];
 }) {
   const [view, setView] = React.useState<View>("BMS");
