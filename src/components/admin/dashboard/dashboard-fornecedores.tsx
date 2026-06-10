@@ -20,7 +20,7 @@ export function DashboardFornecedores({ rows }: { rows: FornecedorRank[] }) {
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm">
       <div className="flex items-center gap-2 border-b border-border p-4 text-sm font-semibold">
-        <Trophy className="h-4 w-4 text-amber-400" />
+        <Trophy className="h-4 w-4 text-warning" />
         Fornecedores — lucro × perdas
       </div>
       {rows.length === 0 ? (
