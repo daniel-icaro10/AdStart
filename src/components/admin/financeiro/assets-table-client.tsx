@@ -1,0 +1,539 @@
+"use client";
+
+import * as React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  DollarSign,
+  AlertTriangle,
+  Pencil,
+  Undo2,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { STATUS_VENDA_META, type StatusVenda } from "@/lib/constants";
+import type { SerializedAtivoFinanceiro } from "@/lib/financeiro";
+import {
+  venderAtivo,
+  marcarPerdido,
+  salvarFinanceiroAtivo,
+  reverterStatus,
+  type FinanceiroResult,
+} from "@/app/admin/financeiro/actions";
+import { TIPO_LABELS } from "./assets-filters";
+
+type Ativo = SerializedAtivoFinanceiro;
+type ModalKind = "vender" | "perder" | "editar" | "reverter";
+
+const moedaFmt = (v: number | null, moeda: string | null) =>
+  v == null ? "—" : formatCurrency(v, (moeda as "BRL" | "USD") ?? "BRL");
+
+const hoje = () => new Date().toISOString().slice(0, 10);
+
+function diasEmEstoque(entrada: string | null, saida: string | null): string {
+  if (!entrada) return "—";
+  const start = new Date(entrada).getTime();
+  const end = saida ? new Date(saida).getTime() : Date.now();
+  return String(Math.max(0, Math.floor((end - start) / 86_400_000)));
+}
+
+// ─── Tabela ───────────────────────────────────────────────────────────────────
+
+export function AssetsTableClient({
+  items,
+  page,
+  totalPages,
+  total,
+}: {
+  items: Ativo[];
+  page: number;
+  totalPages: number;
+  total: number;
+}) {
+  const router = useRouter();
+  const params = useSearchParams();
+  const [modal, setModal] = React.useState<{ kind: ModalKind; ativo: Ativo } | null>(
+    null,
+  );
+
+  const goPage = (p: number) => {
+    const sp = new URLSearchParams(params.toString());
+    sp.set("page", String(p));
+    router.push(`/admin/financeiro/ativos?${sp.toString()}`);
+  };
+
+  const onDone = () => {
+    setModal(null);
+    router.refresh();
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Ativo</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Fornecedor</TableHead>
+              <TableHead className="text-right">Custo</TableHead>
+              <TableHead className="text-right">Previsto</TableHead>
+              <TableHead className="text-right">Margem</TableHead>
+              <TableHead className="text-right">Dias</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                  Nenhum ativo encontrado com esses filtros.
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((a) => {
+                const status = a.statusVenda as StatusVenda;
+                const emEstoque =
+                  status === "DISPONIVEL" || status === "RESERVADO";
+                const margem =
+                  a.precoPrevisto != null && a.custoAquisicao != null
+                    ? a.precoPrevisto - a.custoAquisicao
+                    : null;
+                return (
+                  <TableRow key={`${a.origem}-${a.id}`}>
+                    <TableCell>
+                      <div className="font-medium">{a.titulo}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {a.origem === "asset" ? "BM" : "Página"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {a.tipo ? TIPO_LABELS[a.tipo] ?? a.tipo : "—"}
+                    </TableCell>
+                    <TableCell className="text-xs">{a.fornecedor ?? "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {moedaFmt(a.custoAquisicao, a.moedaCusto)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {moedaFmt(a.precoPrevisto, a.moedaCusto)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right tabular-nums",
+                        margem != null && margem >= 0 && "text-emerald-400",
+                        margem != null && margem < 0 && "text-rose-400",
+                      )}
+                    >
+                      {moedaFmt(margem, a.moedaCusto)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                      {diasEmEstoque(a.dataEntrada, a.dataSaida)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={cn("border", STATUS_VENDA_META[status].badgeClass)}>
+                        {STATUS_VENDA_META[status].label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        {emEstoque ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Marcar como vendido"
+                              title="Vender"
+                              onClick={() => setModal({ kind: "vender", ativo: a })}
+                            >
+                              <DollarSign className="h-4 w-4 text-emerald-400" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Marcar como perdido"
+                              title="Perder"
+                              onClick={() => setModal({ kind: "perder", ativo: a })}
+                            >
+                              <AlertTriangle className="h-4 w-4 text-rose-400" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Reverter status"
+                            title="Reverter para estoque"
+                            onClick={() => setModal({ kind: "reverter", ativo: a })}
+                          >
+                            <Undo2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Editar financeiro"
+                          title="Editar dados financeiros"
+                          onClick={() => setModal({ kind: "editar", ativo: a })}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* paginação */}
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>{total} ativo(s)</span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            disabled={page <= 1}
+            onClick={() => goPage(page - 1)}
+            aria-label="Página anterior"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span>
+            {page} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            disabled={page >= totalPages}
+            onClick={() => goPage(page + 1)}
+            aria-label="Próxima página"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* modais */}
+      <Dialog open={!!modal} onOpenChange={(o) => !o && setModal(null)}>
+        <DialogContent className="max-w-md">
+          {modal?.kind === "vender" && (
+            <VenderForm ativo={modal.ativo} onDone={onDone} />
+          )}
+          {modal?.kind === "perder" && (
+            <PerderForm ativo={modal.ativo} onDone={onDone} />
+          )}
+          {modal?.kind === "editar" && (
+            <EditarForm ativo={modal.ativo} onDone={onDone} />
+          )}
+          {modal?.kind === "reverter" && (
+            <ReverterForm ativo={modal.ativo} onDone={onDone} />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ─── helper de submit ─────────────────────────────────────────────────────────
+
+function useSubmit(action: (input: unknown) => Promise<FinanceiroResult>) {
+  const [pending, setPending] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const run = async (payload: unknown, onOk: () => void) => {
+    setPending(true);
+    setError(null);
+    const res = await action(payload);
+    setPending(false);
+    if (res.ok) onOk();
+    else setError(res.error);
+  };
+  return { pending, error, run };
+}
+
+function ErrorMsg({ msg }: { msg: string | null }) {
+  if (!msg) return null;
+  return <p className="text-sm text-destructive">{msg}</p>;
+}
+
+function Footer({
+  pending,
+  onCancel,
+  label,
+  variant,
+}: {
+  pending: boolean;
+  onCancel: () => void;
+  label: string;
+  variant?: "default" | "destructive";
+}) {
+  return (
+    <div className="flex justify-end gap-2 pt-1">
+      <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
+        Cancelar
+      </Button>
+      <Button type="submit" variant={variant} disabled={pending}>
+        {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+        {label}
+      </Button>
+    </div>
+  );
+}
+
+// ─── Vender ───────────────────────────────────────────────────────────────────
+
+function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
+  const { pending, error, run } = useSubmit(venderAtivo);
+  const [precoVenda, setPreco] = React.useState("");
+  const [comprador, setComprador] = React.useState("");
+  const [dataSaida, setData] = React.useState(hoje());
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        run(
+          { origem: ativo.origem, id: ativo.id, precoVenda, comprador, dataSaida },
+          onDone,
+        );
+      }}
+      className="space-y-4"
+    >
+      <DialogHeader>
+        <DialogTitle>Marcar como vendido</DialogTitle>
+      </DialogHeader>
+      <p className="text-sm text-muted-foreground">{ativo.titulo}</p>
+      <div className="space-y-1.5">
+        <Label>Preço de venda (R$) *</Label>
+        <Input
+          type="number"
+          step="0.01"
+          min="0"
+          required
+          autoFocus
+          value={precoVenda}
+          onChange={(e) => setPreco(e.target.value)}
+          placeholder="Ex: 1500"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Comprador</Label>
+          <Input value={comprador} onChange={(e) => setComprador(e.target.value)} placeholder="Nome/contato" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Data da venda</Label>
+          <Input type="date" value={dataSaida} onChange={(e) => setData(e.target.value)} />
+        </div>
+      </div>
+      <ErrorMsg msg={error} />
+      <Footer pending={pending} onCancel={onDone} label="Confirmar venda" />
+    </form>
+  );
+}
+
+// ─── Perder ───────────────────────────────────────────────────────────────────
+
+function PerderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
+  const { pending, error, run } = useSubmit(marcarPerdido);
+  const [motivoPerda, setMotivo] = React.useState("");
+  const [dataSaida, setData] = React.useState(hoje());
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        run({ origem: ativo.origem, id: ativo.id, motivoPerda, dataSaida }, onDone);
+      }}
+      className="space-y-4"
+    >
+      <DialogHeader>
+        <DialogTitle>Marcar como perdido</DialogTitle>
+      </DialogHeader>
+      <p className="text-sm text-muted-foreground">{ativo.titulo}</p>
+      <div className="space-y-1.5">
+        <Label>Motivo da perda *</Label>
+        <Textarea
+          required
+          autoFocus
+          value={motivoPerda}
+          onChange={(e) => setMotivo(e.target.value)}
+          placeholder="Ex: ban na verificação, restrição de anúncios…"
+          className="min-h-[80px]"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Data da perda</Label>
+        <Input type="date" value={dataSaida} onChange={(e) => setData(e.target.value)} />
+      </div>
+      <ErrorMsg msg={error} />
+      <Footer pending={pending} onCancel={onDone} label="Confirmar perda" variant="destructive" />
+    </form>
+  );
+}
+
+// ─── Editar financeiro ────────────────────────────────────────────────────────
+
+function EditarForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
+  const { pending, error, run } = useSubmit(salvarFinanceiroAtivo);
+  const [tipo, setTipo] = React.useState<string>(ativo.tipo ?? "NONE");
+  const [fornecedor, setForn] = React.useState(ativo.fornecedor ?? "");
+  const [custoAquisicao, setCusto] = React.useState(
+    ativo.custoAquisicao != null ? String(ativo.custoAquisicao) : "",
+  );
+  const [moedaCusto, setMoeda] = React.useState<string>(ativo.moedaCusto ?? "BRL");
+  const [dataEntrada, setEntrada] = React.useState(
+    ativo.dataEntrada ? ativo.dataEntrada.slice(0, 10) : "",
+  );
+  const [precoPrevisto, setPrevisto] = React.useState(
+    ativo.precoPrevisto != null ? String(ativo.precoPrevisto) : "",
+  );
+  const [observacoes, setObs] = React.useState(ativo.observacoes ?? "");
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        run(
+          {
+            origem: ativo.origem,
+            id: ativo.id,
+            tipo: tipo === "NONE" ? null : tipo,
+            fornecedor,
+            custoAquisicao,
+            moedaCusto,
+            dataEntrada,
+            precoPrevisto,
+            observacoes,
+          },
+          onDone,
+        );
+      }}
+      className="space-y-4"
+    >
+      <DialogHeader>
+        <DialogTitle>Dados financeiros</DialogTitle>
+      </DialogHeader>
+      <p className="text-sm text-muted-foreground">{ativo.titulo}</p>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Tipo</Label>
+          <Select value={tipo} onValueChange={setTipo}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="NONE">—</SelectItem>
+              {Object.entries(TIPO_LABELS).map(([v, l]) => (
+                <SelectItem key={v} value={v}>{l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Fornecedor</Label>
+          <Input value={fornecedor} onChange={(e) => setForn(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Custo</Label>
+          <Input type="number" step="0.01" min="0" value={custoAquisicao} onChange={(e) => setCusto(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Moeda do custo</Label>
+          <Select value={moedaCusto} onValueChange={setMoeda}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="BRL">Real (R$)</SelectItem>
+              <SelectItem value="USD">Dólar (US$)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Preço previsto</Label>
+          <Input type="number" step="0.01" min="0" value={precoPrevisto} onChange={(e) => setPrevisto(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Data de entrada</Label>
+          <Input type="date" value={dataEntrada} onChange={(e) => setEntrada(e.target.value)} />
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Observações</Label>
+        <Textarea value={observacoes} onChange={(e) => setObs(e.target.value)} className="min-h-[60px]" />
+      </div>
+      <ErrorMsg msg={error} />
+      <Footer pending={pending} onCancel={onDone} label="Salvar" />
+    </form>
+  );
+}
+
+// ─── Reverter ─────────────────────────────────────────────────────────────────
+
+function ReverterForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
+  const { pending, error, run } = useSubmit(reverterStatus);
+  const [novoStatus, setStatus] = React.useState("DISPONIVEL");
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        run(
+          { origem: ativo.origem, id: ativo.id, novoStatus, confirmar: true },
+          onDone,
+        );
+      }}
+      className="space-y-4"
+    >
+      <DialogHeader>
+        <DialogTitle>Reverter para estoque</DialogTitle>
+      </DialogHeader>
+      <p className="text-sm text-muted-foreground">
+        Isso volta <strong className="text-foreground">{ativo.titulo}</strong> ao
+        estoque e <strong>apaga</strong> preço de venda, comprador, data e motivo
+        de perda. Confirmar?
+      </p>
+      <div className="space-y-1.5">
+        <Label>Novo status</Label>
+        <Select value={novoStatus} onValueChange={setStatus}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="DISPONIVEL">Disponível</SelectItem>
+            <SelectItem value="RESERVADO">Reservado</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <ErrorMsg msg={error} />
+      <Footer pending={pending} onCancel={onDone} label="Reverter" variant="destructive" />
+    </form>
+  );
+}

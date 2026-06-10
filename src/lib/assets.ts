@@ -1,7 +1,34 @@
-import type { Page } from "@prisma/client";
+import type { Page, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import type { AssetWithContas, AssetWithDetails, CatalogStats } from "@/types";
+
+/**
+ * Allowlist de campos PÚBLICOS do Asset (vitrine). Mantida em sincronia com o
+ * tipo AssetWithContas em @/types — NUNCA adicionar campos financeiros aqui.
+ */
+const PUBLIC_ASSET_SELECT = {
+  id: true,
+  codigo: true,
+  titulo: true,
+  moeda: true,
+  categoria: true,
+  anoCriacao: true,
+  totalGastosBRL: true,
+  totalGastosUSD: true,
+  qtdContas: true,
+  verificada: true,
+  semDividas: true,
+  semBloqueios: true,
+  statusVenda: true,
+  valor: true,
+  destaque: true,
+  icone: true,
+  conteudo: true,
+  tier: true,
+  createdAt: true,
+  updatedAt: true,
+} as const satisfies Prisma.AssetSelect;
 
 /**
  * Busca os ativos visíveis no catálogo público.
@@ -10,10 +37,11 @@ import type { AssetWithContas, AssetWithDetails, CatalogStats } from "@/types";
  */
 export async function getCatalogAssets(): Promise<AssetWithContas[]> {
   return prisma.asset.findMany({
+    // Ativos PERDIDOS (banidos/restritos) nunca aparecem na vitrine pública.
+    where: { statusVenda: { not: "PERDIDO" } },
     orderBy: [{ destaque: "desc" }, { valor: "desc" }, { createdAt: "desc" }],
-    include: {
-      contas: { orderBy: { nome: "asc" } },
-    },
+    // Allowlist: só campos públicos saem para a vitrine (sem dados financeiros).
+    select: PUBLIC_ASSET_SELECT,
   });
 }
 

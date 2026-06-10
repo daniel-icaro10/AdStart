@@ -12,7 +12,7 @@ export type Categoria =
   | "MAIS_100K"
   | "SEM_CATEGORIA";
 
-export type StatusVenda = "DISPONIVEL" | "RESERVADO" | "VENDIDO";
+export type StatusVenda = "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "PERDIDO";
 
 export type Moeda = "BRL" | "USD";
 
@@ -123,6 +123,10 @@ export const STATUS_VENDA_META: Record<StatusVenda, StatusMeta> = {
   VENDIDO: {
     label: "Vendido",
     badgeClass: "bg-rose-500/15 text-rose-400 border-rose-500/25",
+  },
+  PERDIDO: {
+    label: "Perdido",
+    badgeClass: "bg-zinc-500/15 text-zinc-400 border-zinc-500/25",
   },
 };
 

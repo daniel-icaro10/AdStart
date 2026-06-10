@@ -19,7 +19,7 @@ import {
 } from "@/lib/constants";
 import { formatCurrency, formatInt } from "@/lib/format";
 import { buildWhatsappLink } from "@/lib/config";
-import type { Page } from "@prisma/client";
+import type { PagePublic } from "@/types";
 
 type PageFollowerKind = "COM" | "SEM";
 
@@ -29,7 +29,7 @@ const TABS: { value: PageFollowerKind; label: string; icon: typeof Users }[] = [
 ];
 
 /** Card de uma página. */
-function PageCard({ page }: { page: Page }) {
+function PageCard({ page }: { page: PagePublic }) {
   const status = page.status as StatusVenda;
   const isVendido = status === "VENDIDO";
   const whatsappLink = buildWhatsappLink(
@@ -108,7 +108,7 @@ function PageCard({ page }: { page: Page }) {
  * Seção de Páginas exibida ABAIXO do catálogo de BMs.
  * Abas: "Com seguidores" / "Sem seguidores".
  */
-export function PagesSection({ pages }: { pages: Page[] }) {
+export function PagesSection({ pages }: { pages: PagePublic[] }) {
   const [tab, setTab] = React.useState<PageFollowerKind>("COM");
   const items = pages.filter((p) => p.kind === tab);
 
