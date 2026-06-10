@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2, RefreshCcw } from "lucide-react";
+import { Plus, Loader2, RefreshCcw, Receipt } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -60,10 +61,10 @@ export function CustosTableClient({ custos }: { custos: SerializedCusto[] }) {
         </Button>
       </div>
 
-      <div className="rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-xl border border-border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-transparent">
+            <TableRow className="bg-accent/50 hover:bg-accent/50">
               <TableHead>Descrição</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Data</TableHead>
@@ -73,9 +74,13 @@ export function CustosTableClient({ custos }: { custos: SerializedCusto[] }) {
           </TableHeader>
           <TableBody>
             {custos.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                  Nenhum custo lançado.
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5}>
+                  <EmptyState
+                    icon={Receipt}
+                    title="Nenhum custo lançado. Registre proxies, ferramentas, tráfego…"
+                    className="py-10"
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -111,7 +116,7 @@ export function CustosTableClient({ custos }: { custos: SerializedCusto[] }) {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="admin-theme max-w-md">
           <NovoCustoForm
             onDone={() => {
               setOpen(false);

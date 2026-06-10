@@ -186,7 +186,7 @@ export function AssetsManager({
 
       {/* painel de edição/criação */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="admin-theme max-w-3xl">
           <DialogHeader>
             <DialogTitle>
               {current ? `Editar · ${current.codigo}` : "Novo ativo"}

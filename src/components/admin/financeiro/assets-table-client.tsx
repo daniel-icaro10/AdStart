@@ -10,6 +10,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  SearchX,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
   TableBody,
@@ -98,10 +100,10 @@ export function AssetsTableClient({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-xl border border-border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-transparent">
+            <TableRow className="bg-accent/50 hover:bg-accent/50">
               <TableHead>Ativo</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Fornecedor</TableHead>
@@ -115,9 +117,13 @@ export function AssetsTableClient({
           </TableHeader>
           <TableBody>
             {items.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
-                  Nenhum ativo encontrado com esses filtros.
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={9}>
+                  <EmptyState
+                    icon={SearchX}
+                    title="Nenhum ativo encontrado com esses filtros."
+                    className="py-10"
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -150,8 +156,8 @@ export function AssetsTableClient({
                     <TableCell
                       className={cn(
                         "text-right tabular-nums",
-                        margem != null && margem >= 0 && "text-emerald-400",
-                        margem != null && margem < 0 && "text-rose-400",
+                        margem != null && margem >= 0 && "text-positive",
+                        margem != null && margem < 0 && "text-negative",
                       )}
                     >
                       {moedaFmt(margem, a.moedaCusto)}
@@ -175,7 +181,7 @@ export function AssetsTableClient({
                               title="Vender"
                               onClick={() => setModal({ kind: "vender", ativo: a })}
                             >
-                              <DollarSign className="h-4 w-4 text-emerald-400" />
+                              <DollarSign className="h-4 w-4 text-positive" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -184,7 +190,7 @@ export function AssetsTableClient({
                               title="Perder"
                               onClick={() => setModal({ kind: "perder", ativo: a })}
                             >
-                              <AlertTriangle className="h-4 w-4 text-rose-400" />
+                              <AlertTriangle className="h-4 w-4 text-negative" />
                             </Button>
                           </>
                         ) : (
@@ -247,7 +253,7 @@ export function AssetsTableClient({
 
       {/* modais */}
       <Dialog open={!!modal} onOpenChange={(o) => !o && setModal(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="admin-theme max-w-md">
           {modal?.kind === "vender" && (
             <VenderForm ativo={modal.ativo} onDone={onDone} />
           )}

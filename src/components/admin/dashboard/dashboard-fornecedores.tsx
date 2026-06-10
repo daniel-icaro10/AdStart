@@ -2,6 +2,7 @@ import { Trophy } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
   TableBody,
@@ -23,9 +24,11 @@ export function DashboardFornecedores({ rows }: { rows: FornecedorRank[] }) {
         Fornecedores — lucro × perdas
       </div>
       {rows.length === 0 ? (
-        <p className="p-6 text-center text-sm text-muted-foreground">
-          Ainda sem vendas/perdas com fornecedor registrado.
-        </p>
+        <EmptyState
+          icon={Trophy}
+          title="Sem vendas/perdas com fornecedor ainda. Registre uma venda para começar o ranking."
+          className="py-10"
+        />
       ) : (
         <Table>
           <TableHeader>
@@ -45,14 +48,14 @@ export function DashboardFornecedores({ rows }: { rows: FornecedorRank[] }) {
                 <TableCell
                   className={cn(
                     "text-right tabular-nums",
-                    r.lucro >= 0 ? "text-emerald-400" : "text-rose-400",
+                    r.lucro >= 0 ? "text-positive" : "text-negative",
                   )}
                 >
                   {brl(r.lucro)}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {r.perdidos > 0 ? (
-                    <span className="text-rose-400">{r.perdidos}</span>
+                    <span className="text-negative">{r.perdidos}</span>
                   ) : (
                     r.perdidos
                   )}

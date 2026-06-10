@@ -1,6 +1,5 @@
 import {
   TrendingUp,
-  TrendingDown,
   Wallet,
   Boxes,
   Target,
@@ -9,69 +8,73 @@ import {
   AlertTriangle,
   Percent,
   ShieldAlert,
+  type LucideIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import type { MetricasFinanceiras } from "@/lib/financeiro";
 
-function brl(v: number) {
-  return formatCurrency(v, "BRL");
-}
-function pct(v: number) {
-  return `${v.toFixed(1).replace(".", ",")}%`;
+const brl = (v: number) => formatCurrency(v, "BRL");
+const pct = (v: number) => `${v.toFixed(1).replace(".", ",")}%`;
+
+type Tone = "neutral" | "positive" | "negative";
+function sign(v: number): Tone {
+  if (v > 0) return "positive";
+  if (v < 0) return "negative";
+  return "neutral";
 }
 
 interface CardDef {
   label: string;
   value: string;
-  icon: typeof Wallet;
+  icon: LucideIcon;
   hint?: string;
-  tone?: "default" | "positive" | "negative" | "accent";
+  tone: Tone;
 }
 
-/** Cards de resumo do dashboard financeiro (tudo consolidado em BRL). */
+/** Cards de resumo do dashboard financeiro (consolidado em BRL). */
 export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
-  const lucroPos = m.lucroRealizado >= 0;
-
   const cards: CardDef[] = [
     {
       label: "Investimento (período)",
       value: brl(m.investimentoTotal),
       icon: Wallet,
       hint: "Custo dos ativos que entraram + custos operacionais",
+      tone: "neutral",
     },
     {
       label: "Receita realizada",
       value: brl(m.receitaRealizada),
       icon: Receipt,
       hint: `${m.totalVendidoPeriodo} venda(s) no período`,
+      tone: "neutral",
     },
     {
       label: "Lucro realizado",
       value: brl(m.lucroRealizado),
-      icon: lucroPos ? TrendingUp : TrendingDown,
-      tone: lucroPos ? "positive" : "negative",
+      icon: TrendingUp,
+      tone: sign(m.lucroRealizado),
       hint: "Vendas com custo − custos operacionais",
     },
     {
       label: "ROI realizado",
       value: pct(m.roiRealizado),
       icon: Percent,
-      tone: m.roiRealizado >= 0 ? "positive" : "negative",
+      tone: sign(m.roiRealizado),
     },
     {
       label: "Perdas (período)",
       value: brl(m.perdas),
       icon: AlertTriangle,
-      tone: m.perdas > 0 ? "negative" : "default",
+      tone: m.perdas > 0 ? "negative" : "neutral",
       hint: `${m.totalPerdidoPeriodo} ativo(s) perdido(s)`,
     },
     {
       label: "Taxa de perda",
       value: pct(m.taxaPerda),
       icon: ShieldAlert,
-      tone: m.taxaPerda > 0 ? "negative" : "default",
+      tone: m.taxaPerda > 0 ? "negative" : "neutral",
       hint: "Perdidos ÷ (vendidos + perdidos)",
     },
     {
@@ -79,18 +82,19 @@ export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
       value: brl(m.valorEstoqueCusto),
       icon: Boxes,
       hint: `${m.totalEmEstoque} disponível · ${m.totalReservado} reservado`,
+      tone: "neutral",
     },
     {
       label: "Estoque (potencial)",
       value: brl(m.valorEstoquePotencial),
       icon: Target,
-      tone: "accent",
+      tone: "neutral",
     },
     {
       label: "Lucro previsto",
       value: brl(m.lucroPrevisto),
       icon: PiggyBank,
-      tone: m.lucroPrevisto >= 0 ? "positive" : "negative",
+      tone: sign(m.lucroPrevisto),
       hint: "Potencial − custo do estoque",
     },
   ];
@@ -103,36 +107,31 @@ export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
             key={c.label}
             className="rounded-xl border border-border bg-card p-4 shadow-sm"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{c.label}</span>
-              <c.icon
-                className={cn(
-                  "h-4 w-4",
-                  c.tone === "positive" && "text-emerald-400",
-                  c.tone === "negative" && "text-rose-400",
-                  c.tone === "accent" && "text-brand",
-                  (!c.tone || c.tone === "default") && "text-muted-foreground",
-                )}
-              />
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-xs uppercase tracking-wide text-faint">
+                {c.label}
+              </span>
+              <c.icon className="h-4 w-4 shrink-0 text-faint" />
             </div>
             <div
               className={cn(
-                "mt-2 text-2xl font-bold tabular-nums",
-                c.tone === "positive" && "text-emerald-400",
-                c.tone === "negative" && "text-rose-400",
+                "mt-2 text-2xl font-semibold tabular-nums",
+                c.tone === "positive" && "text-positive",
+                c.tone === "negative" && "text-negative",
+                c.tone === "neutral" && "text-foreground",
               )}
             >
               {c.value}
             </div>
             {c.hint && (
-              <div className="mt-1 text-xs text-muted-foreground">{c.hint}</div>
+              <div className="mt-1 text-sm text-muted-foreground">{c.hint}</div>
             )}
           </div>
         ))}
       </div>
 
       {m.vendasSemCusto > 0 && (
-        <p className="mt-3 flex items-center gap-1.5 text-xs text-amber-400">
+        <p className="mt-3 flex items-center gap-1.5 text-xs text-warning">
           <AlertTriangle className="h-3.5 w-3.5" />
           {m.vendasSemCusto} venda(s) sem custo de aquisição registrado — contam
           na receita, mas ficam fora do lucro e do ROI.

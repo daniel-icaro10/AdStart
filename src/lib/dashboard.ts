@@ -17,6 +17,7 @@ import {
 import { CATEGORIA_META, CATEGORIA_ORDER, type Categoria } from "./constants";
 
 // Limiares (dias) — ajustáveis conforme a operação.
+export const AGING_MIN = 15; // a partir daqui o ativo aparece na lista de "parados"
 export const AGING_WARN = 30;
 export const AGING_CRIT = 60;
 export const RESERVADO_TRAVADO = 14;
@@ -60,11 +61,15 @@ export interface DashboardData {
   metricas: MetricasFinanceiras;
   serie: PontoMensal[];
   aging: AgingItem[];
+  agingTotal: number;
   agingWarn: number;
   agingCrit: number;
   reservadosTravados: AgingItem[];
+  reservadosTotal: number;
   incompletos: IncompletoItem[];
   incompletosTotal: number;
+  incSemCusto: number;
+  incSemFornecedor: number;
   fornecedores: FornecedorRank[];
   estoquePorCategoria: EstoqueCategoria[];
 }
@@ -97,7 +102,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   );
 
   // ── Aging (ordenado do mais parado) ──────────────────────────────────
-  const aging: AgingItem[] = emEstoque
+  const agingAll: AgingItem[] = emEstoque
     .map((a) => ({
       id: a.id,
       origem: a.origem,
@@ -109,10 +114,13 @@ export async function getDashboardData(): Promise<DashboardData> {
     }))
     .sort((x, y) => y.dias - x.dias);
 
-  const agingWarn = aging.filter((a) => a.dias >= AGING_WARN).length;
-  const agingCrit = aging.filter((a) => a.dias >= AGING_CRIT).length;
+  const agingWarn = agingAll.filter((a) => a.dias >= AGING_WARN).length;
+  const agingCrit = agingAll.filter((a) => a.dias >= AGING_CRIT).length;
 
-  const reservadosTravados = aging.filter(
+  // Só entram na lista os parados há ≥ AGING_MIN dias.
+  const agingListados = agingAll.filter((a) => a.dias >= AGING_MIN);
+
+  const reservadosAll = agingAll.filter(
     (a) => a.status === "RESERVADO" && a.dias >= RESERVADO_TRAVADO,
   );
 
@@ -126,6 +134,8 @@ export async function getDashboardData(): Promise<DashboardData> {
       faltaCusto: a.custoAquisicao == null,
       faltaFornecedor: !a.fornecedor,
     }));
+  const incSemCusto = incompletosAll.filter((i) => i.faltaCusto).length;
+  const incSemFornecedor = incompletosAll.filter((i) => i.faltaFornecedor).length;
 
   // ── Ranking de fornecedores (lucro vs perda) ─────────────────────────
   const fmap = new Map<string, FornecedorRank>();
@@ -169,12 +179,16 @@ export async function getDashboardData(): Promise<DashboardData> {
     taxa,
     metricas,
     serie,
-    aging: aging.slice(0, 8),
+    aging: agingListados.slice(0, 6),
+    agingTotal: agingListados.length,
     agingWarn,
     agingCrit,
-    reservadosTravados: reservadosTravados.slice(0, 8),
-    incompletos: incompletosAll.slice(0, 8),
+    reservadosTravados: reservadosAll.slice(0, 6),
+    reservadosTotal: reservadosAll.length,
+    incompletos: incompletosAll.slice(0, 6),
     incompletosTotal: incompletosAll.length,
+    incSemCusto,
+    incSemFornecedor,
     fornecedores,
     estoquePorCategoria,
   };

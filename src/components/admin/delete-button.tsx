@@ -52,7 +52,7 @@ export function DeleteButton({ id, label, action }: DeleteButtonProps) {
       >
         <Trash2 className="h-4 w-4 text-destructive" />
       </Button>
-      <DialogContent className="max-w-md">
+      <DialogContent className="admin-theme max-w-md">
         <DialogHeader>
           <DialogTitle>Excluir item</DialogTitle>
           <DialogDescription>
