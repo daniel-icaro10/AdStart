@@ -50,20 +50,53 @@ async function updateAtivo(
   }
 }
 
-/** Lê moedaCusto + taxaCambioNaDia atuais do ativo (para snapshot de câmbio). */
-async function getMoedaInfo(origem: "asset" | "page", id: string) {
-  const row =
-    origem === "asset"
-      ? await prisma.asset.findUnique({
-          where: { id },
-          select: { moedaCusto: true, taxaCambioNaDia: true },
-        })
-      : await prisma.page.findUnique({
-          where: { id },
-          select: { moedaCusto: true, taxaCambioNaDia: true },
-        });
-  return row;
+/** Lê status atual + moedaCusto + taxaCambioNaDia do ativo. */
+async function getEstadoAtivo(origem: "asset" | "page", id: string) {
+  if (origem === "asset") {
+    const r = await prisma.asset.findUnique({
+      where: { id },
+      select: { statusVenda: true, moedaCusto: true, taxaCambioNaDia: true },
+    });
+    return r
+      ? { status: r.statusVenda, moedaCusto: r.moedaCusto, taxaCambioNaDia: r.taxaCambioNaDia }
+      : null;
+  }
+  const r = await prisma.page.findUnique({
+    where: { id },
+    select: { status: true, moedaCusto: true, taxaCambioNaDia: true },
+  });
+  return r
+    ? { status: r.status, moedaCusto: r.moedaCusto, taxaCambioNaDia: r.taxaCambioNaDia }
+    : null;
 }
+
+/**
+ * Atualização ATÔMICA com guarda de status: só altera se o status atual estiver
+ * em `statusPermitidos` (via updateMany + WHERE). Retorna a contagem afetada —
+ * 0 significa status inválido (ou ativo inexistente), sem race condition.
+ */
+async function updateAtivoGuarded(
+  origem: "asset" | "page",
+  id: string,
+  statusPermitidos: string[],
+  data: Record<string, unknown>,
+  novoStatus: string,
+): Promise<number> {
+  if (origem === "asset") {
+    const r = await prisma.asset.updateMany({
+      where: { id, statusVenda: { in: statusPermitidos } },
+      data: { ...data, statusVenda: novoStatus },
+    });
+    return r.count;
+  }
+  const r = await prisma.page.updateMany({
+    where: { id, status: { in: statusPermitidos } },
+    data: { ...data, status: novoStatus },
+  });
+  return r.count;
+}
+
+const EM_ESTOQUE = ["DISPONIVEL", "RESERVADO"];
 
 /**
  * Marca o ativo como VENDIDO. precoVenda é obrigatório (validado no schema).
@@ -79,15 +112,19 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
   const { origem, id, precoVenda, comprador, dataSaida, observacoes } =
     parsed.data;
 
-  const info = await getMoedaInfo(origem, id);
+  const estado = await getEstadoAtivo(origem, id);
+  if (!estado) return { ok: false, error: "Ativo não encontrado." };
+
   const taxaSnapshot =
-    info?.moedaCusto === "USD" && info.taxaCambioNaDia == null
+    estado.moedaCusto === "USD" && estado.taxaCambioNaDia == null
       ? await getTaxaAtual()
       : undefined;
 
-  await updateAtivo(
+  // Guarda atômica: só vende se ainda estiver em estoque (não sobrescreve venda/perda).
+  const count = await updateAtivoGuarded(
     origem,
     id,
+    EM_ESTOQUE,
     {
       precoVenda,
       comprador: comprador || null,
@@ -97,6 +134,12 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
     },
     "VENDIDO",
   );
+  if (count === 0) {
+    return {
+      ok: false,
+      error: `Só é possível vender ativos em estoque (status atual: ${estado.status}).`,
+    };
+  }
   revalidate();
   return { ok: true };
 }
@@ -110,15 +153,19 @@ export async function marcarPerdido(input: unknown): Promise<FinanceiroResult> {
   }
   const { origem, id, motivoPerda, dataSaida } = parsed.data;
 
-  const info = await getMoedaInfo(origem, id);
+  const estado = await getEstadoAtivo(origem, id);
+  if (!estado) return { ok: false, error: "Ativo não encontrado." };
+
   const taxaSnapshot =
-    info?.moedaCusto === "USD" && info.taxaCambioNaDia == null
+    estado.moedaCusto === "USD" && estado.taxaCambioNaDia == null
       ? await getTaxaAtual()
       : undefined;
 
-  await updateAtivo(
+  // Guarda atômica: só marca perdido se ainda estiver em estoque.
+  const count = await updateAtivoGuarded(
     origem,
     id,
+    EM_ESTOQUE,
     {
       motivoPerda,
       dataSaida: dataSaida ?? new Date(),
@@ -126,6 +173,12 @@ export async function marcarPerdido(input: unknown): Promise<FinanceiroResult> {
     },
     "PERDIDO",
   );
+  if (count === 0) {
+    return {
+      ok: false,
+      error: `Só é possível marcar como perdido ativos em estoque (status atual: ${estado.status}).`,
+    };
+  }
   revalidate();
   return { ok: true };
 }
@@ -144,7 +197,13 @@ export async function reverterStatus(input: unknown): Promise<FinanceiroResult> 
   await updateAtivo(
     origem,
     id,
-    { precoVenda: null, comprador: null, dataSaida: null, motivoPerda: null },
+    {
+      precoVenda: null,
+      comprador: null,
+      dataSaida: null,
+      motivoPerda: null,
+      taxaCambioNaDia: null,
+    },
     novoStatus,
   );
   revalidate();
