@@ -57,6 +57,12 @@ const config: Config = {
           DEFAULT: rgb("--brand"),
           hover: rgb("--brand-hover"),
         },
+        // Texto mais apagado (labels, eixos de gráfico).
+        faint: rgb("--text-muted"),
+        // Cores semânticas — usar SÓ quando o valor carrega significado.
+        positive: rgb("--positive"),
+        negative: rgb("--negative"),
+        warning: rgb("--warning"),
       },
       borderRadius: {
         xl: "calc(var(--radius) + 4px)",

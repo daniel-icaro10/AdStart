@@ -31,11 +31,14 @@ export default async function AdminDashboardPage() {
 
       <DashboardAlertas
         aging={d.aging}
+        agingTotal={d.agingTotal}
         agingWarn={d.agingWarn}
         agingCrit={d.agingCrit}
         reservados={d.reservadosTravados}
-        incompletos={d.incompletos}
+        reservadosTotal={d.reservadosTotal}
         incompletosTotal={d.incompletosTotal}
+        incSemCusto={d.incSemCusto}
+        incSemFornecedor={d.incSemFornecedor}
       />
 
       <DashboardCharts serie={d.serie} estoquePorCategoria={d.estoquePorCategoria} />

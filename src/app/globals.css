@@ -42,7 +42,49 @@
     --brand: 37 99 235; /* #2563eb */
     --brand-hover: 59 130 246; /* #3b82f6 */
 
+    /* tokens semânticos + texto dim (globais; usados no admin) */
+    --text-muted: 100 116 139; /* #64748B */
+    --positive: 34 197 94; /* #22C55E */
+    --negative: 239 68 68; /* #EF4444 */
+    --warning: 245 158 11; /* #F59E0B */
+
     --radius: 0.625rem; /* 10px base */
+  }
+
+  /*
+   * Tema do ADMIN — paleta slate do redesign, escopada na classe .admin-theme
+   * (aplicada na raiz do AdminShell). A landing pública usa o :root acima e
+   * NÃO é afetada por estes overrides.
+   */
+  .admin-theme {
+    --background: 11 15 23; /* #0B0F17 bg-base */
+    --foreground: 232 236 244; /* #E8ECF4 text-primary */
+    --card: 17 23 38; /* #111726 bg-surface */
+    --card-foreground: 232 236 244;
+    --popover: 26 34 54; /* #1A2236 surface-2 */
+    --popover-foreground: 232 236 244;
+
+    --primary: 59 130 246; /* #3B82F6 accent */
+    --primary-foreground: 248 250 252;
+
+    --secondary: 26 34 54; /* #1A2236 surface-2 */
+    --secondary-foreground: 232 236 244;
+
+    --muted: 26 34 54; /* surface-2 */
+    --muted-foreground: 148 163 184; /* #94A3B8 text-secondary */
+
+    --accent: 26 34 54; /* #1A2236 surface-2 — hover/cabeçalhos */
+    --accent-foreground: 232 236 244;
+
+    --destructive: 239 68 68;
+    --destructive-foreground: 248 250 252;
+
+    --border: 35 45 69; /* #232D45 border-subtle */
+    --input: 35 45 69;
+    --ring: 59 130 246; /* accent */
+
+    --brand: 59 130 246; /* #3B82F6 */
+    --brand-hover: 96 165 250; /* #60A5FA */
   }
 }
 

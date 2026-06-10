@@ -172,7 +172,7 @@ export function PagesManager({ pages }: { pages: Page[] }) {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="admin-theme max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {current ? `Editar · ${current.nome}` : "Nova página"}

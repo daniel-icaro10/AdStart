@@ -13,7 +13,7 @@ interface AdminShellProps {
  */
 export function AdminShell({ userName, userEmail, children }: AdminShellProps) {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="admin-theme flex min-h-screen bg-background text-foreground">
       <AdminSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader userName={userName} userEmail={userEmail} />
