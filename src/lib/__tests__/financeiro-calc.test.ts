@@ -269,6 +269,23 @@ describe("períodos — fronteiras no fuso America/Sao_Paulo", () => {
   });
 });
 
+// ─── Estoque por moeda ────────────────────────────────────────────────────────
+
+describe("calcularMetricas — quebra do estoque por moeda", () => {
+  it("separa custo USD (em USD) e BRL (em BRL); consolida em BRL pela taxa", () => {
+    const ativos = [
+      ativo({ statusVenda: "DISPONIVEL", custoAquisicao: 100, moedaCusto: "USD" }),
+      ativo({ statusVenda: "RESERVADO", custoAquisicao: 500, moedaCusto: "BRL" }),
+      ativo({ statusVenda: "DISPONIVEL", custoAquisicao: 50, moedaCusto: null }),
+    ];
+    const m = calcularMetricas(ativos, [], PERIODO, 5);
+    expect(m.estoqueCustoUSD).toBe(100); // só o USD, sem converter
+    expect(m.estoqueCustoBRL).toBe(550); // 500 (BRL) + 50 (sem moeda → BRL)
+    // consolidado: 100*5 + 550 = 1050
+    expect(m.valorEstoqueCusto).toBe(1050);
+  });
+});
+
 // ─── Investimento ─────────────────────────────────────────────────────────────
 
 describe("calcularMetricas — investimento do período", () => {

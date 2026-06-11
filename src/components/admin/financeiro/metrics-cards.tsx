@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, breakdownMoeda } from "@/lib/format";
 import type { MetricasFinanceiras } from "@/lib/financeiro";
 
 const brl = (v: number) => formatCurrency(v, "BRL");
@@ -35,6 +35,7 @@ interface CardDef {
 
 /** Cards de resumo do dashboard financeiro (consolidado em BRL). */
 export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
+  const quebraEstoque = breakdownMoeda(m.estoqueCustoUSD, m.estoqueCustoBRL);
   const cards: CardDef[] = [
     {
       label: "Investimento (período)",
@@ -81,7 +82,7 @@ export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
       label: "Estoque (custo)",
       value: brl(m.valorEstoqueCusto),
       icon: Boxes,
-      hint: `${m.totalEmEstoque} disponível · ${m.totalReservado} reservado`,
+      hint: `${quebraEstoque ? `${quebraEstoque} · ` : ""}${m.totalEmEstoque} disponível · ${m.totalReservado} reservado`,
       tone: "neutral",
     },
     {

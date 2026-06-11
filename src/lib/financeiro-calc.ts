@@ -90,6 +90,10 @@ export interface MetricasFinanceiras {
   vendasSemCusto: number;
   // ── Estoque atual (todos os ativos, sem filtro de período) ────────────
   valorEstoqueCusto: number;
+  /** Custo do estoque com moeda USD — somado EM USD (valor original). */
+  estoqueCustoUSD: number;
+  /** Custo do estoque com moeda BRL (ou sem moeda) — somado EM BRL. */
+  estoqueCustoBRL: number;
   valorEstoquePotencial: number;
   lucroPrevisto: number;
   // ── Contadores ───────────────────────────────────────────────────────
@@ -240,6 +244,15 @@ export function calcularMetricas(
     (sum, a) => sum + (custoEmBRL(a) ?? 0),
     0,
   );
+
+  // Quebra do custo do estoque por moeda ORIGINAL (sem converter).
+  let estoqueCustoUSD = 0;
+  let estoqueCustoBRL = 0;
+  for (const a of emEstoque) {
+    if (a.custoAquisicao == null) continue;
+    if (a.moedaCusto === "USD") estoqueCustoUSD += a.custoAquisicao;
+    else estoqueCustoBRL += a.custoAquisicao; // BRL ou null → tratado como BRL
+  }
   const valorEstoquePotencial = emEstoque.reduce(
     (sum, a) => sum + (previstoEmBRL(a) ?? 0),
     0,
@@ -281,6 +294,8 @@ export function calcularMetricas(
     taxaPerda,
     vendasSemCusto,
     valorEstoqueCusto,
+    estoqueCustoUSD,
+    estoqueCustoBRL,
     valorEstoquePotencial,
     lucroPrevisto,
     totalEmEstoque: emEstoque.filter((a) => a.statusVenda === "DISPONIVEL")
