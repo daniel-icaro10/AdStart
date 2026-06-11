@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, breakdownMoeda } from "@/lib/format";
 import type { MetricasFinanceiras } from "@/lib/financeiro";
 
 const brl = (v: number) => formatCurrency(v, "BRL");
@@ -32,11 +32,12 @@ function sign(v: number): Tone {
 
 /** Faixa de KPIs do dashboard — anatomia idêntica nos quatro cards. */
 export function DashboardKpis({ m }: { m: MetricasFinanceiras }) {
+  const quebra = breakdownMoeda(m.estoqueCustoUSD, m.estoqueCustoBRL);
   const cards: Kpi[] = [
     {
       label: "Estoque (custo)",
       value: brl(m.valorEstoqueCusto),
-      sub: `${m.totalEmEstoque} disp. · ${m.totalReservado} reserv. · potencial ${brl(m.valorEstoquePotencial)}`,
+      sub: `${quebra ? `${quebra} · ` : ""}${m.totalEmEstoque} disp. · ${m.totalReservado} reserv.`,
       icon: Boxes,
       tone: "neutral",
     },
