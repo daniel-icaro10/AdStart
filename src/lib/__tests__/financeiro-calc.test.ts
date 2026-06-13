@@ -29,6 +29,8 @@ function ativo(p: Partial<AtivoFinanceiro>): AtivoFinanceiro {
     dataEntrada: null,
     precoPrevisto: null,
     precoVenda: null,
+    moedaVenda: "BRL",
+    taxaVendaNaDia: null,
     comprador: null,
     dataSaida: null,
     motivoPerda: null,
@@ -266,6 +268,75 @@ describe("períodos — fronteiras no fuso America/Sao_Paulo", () => {
     ];
     const m = calcularMetricas(ativos, [], p, 5);
     expect(m.totalVendidoPeriodo).toBe(1);
+  });
+});
+
+// ─── Moeda da venda (normalização da receita/lucro) ──────────────────────────
+
+describe("calcularMetricas — moeda da venda", () => {
+  it("venda em BRL não é convertida (raw)", () => {
+    const ativos = [
+      ativo({
+        statusVenda: "VENDIDO",
+        custoAquisicao: 160,
+        moedaCusto: "BRL",
+        precoVenda: 1990,
+        moedaVenda: "BRL",
+        dataSaida: dentro,
+      }),
+    ];
+    const m = calcularMetricas(ativos, [], PERIODO, 5.5);
+    expect(m.receitaRealizada).toBe(1990);
+    expect(m.lucroRealizado).toBe(1830);
+  });
+
+  it("venda em USD é convertida pela taxa da venda", () => {
+    const ativos = [
+      ativo({
+        statusVenda: "VENDIDO",
+        custoAquisicao: 900,
+        moedaCusto: "USD",
+        taxaCambioNaDia: 5,
+        precoVenda: 1990,
+        moedaVenda: "USD",
+        taxaVendaNaDia: 5,
+        dataSaida: dentro,
+      }),
+    ];
+    const m = calcularMetricas(ativos, [], PERIODO, 5);
+    // venda 1990 USD × 5 = 9950 ; custo 900 USD × 5 = 4500 ; lucro = 5450
+    expect(m.receitaRealizada).toBe(9950);
+    expect(m.lucroRealizado).toBe(5450);
+  });
+
+  it("cenário real do bug: 3 vendas em BRL, custo USD convertido → receita 5970, lucro 210", () => {
+    const ativos = [
+      ativo({ statusVenda: "VENDIDO", custoAquisicao: 160, moedaCusto: "BRL", precoVenda: 1990, moedaVenda: "BRL", dataSaida: dentro }),
+      ativo({ statusVenda: "VENDIDO", custoAquisicao: 900, moedaCusto: "USD", taxaCambioNaDia: 5.5, precoVenda: 1990, moedaVenda: "BRL", dataSaida: dentro }),
+      ativo({ statusVenda: "VENDIDO", custoAquisicao: 650, moedaCusto: "BRL", precoVenda: 1990, moedaVenda: "BRL", dataSaida: dentro }),
+    ];
+    const m = calcularMetricas(ativos, [], PERIODO, 5.5);
+    expect(m.receitaRealizada).toBe(5970);
+    // 1830 + (1990 − 4950) + 1340 = 210  (lucro é rastreável e correto)
+    expect(m.lucroRealizado).toBe(210);
+  });
+});
+
+// ─── Lucro previsto (base equivalente) ───────────────────────────────────────
+
+describe("calcularMetricas — lucro previsto sobre base equivalente", () => {
+  it("só considera ativos precificados (custo E preço > 0); conta os sem preço", () => {
+    const ativos = [
+      ativo({ statusVenda: "DISPONIVEL", custoAquisicao: 1000, precoPrevisto: 1800 }), // precificado
+      ativo({ statusVenda: "DISPONIVEL", custoAquisicao: 500, precoPrevisto: null }), // custo, sem preço → fora
+      ativo({ statusVenda: "DISPONIVEL", custoAquisicao: 300, precoPrevisto: 0 }), // preço 0 → fora
+      ativo({ statusVenda: "RESERVADO", custoAquisicao: null, precoPrevisto: 900 }), // preço, sem custo → fora
+    ];
+    const m = calcularMetricas(ativos, [], PERIODO, 5);
+    expect(m.valorEstoquePotencial).toBe(1800); // só o precificado
+    expect(m.lucroPrevisto).toBe(800); // 1800 − 1000 (bases equivalentes)
+    expect(m.estoqueSemPreco).toBe(3);
+    expect(m.valorEstoqueCusto).toBe(1800); // custo de todos com custo (1000+500+300)
   });
 });
 

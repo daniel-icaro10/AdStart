@@ -53,9 +53,10 @@ export const ativoFinanceiroSchema = ativoRefSchema.extend({
   observacoes: z.string().trim().max(2000).optional().default(""),
 });
 
-/** Marcar como vendido: precoVenda OBRIGATÓRIO. */
+/** Marcar como vendido: precoVenda OBRIGATÓRIO; moeda da venda obrigatória. */
 export const venderSchema = ativoRefSchema.extend({
   precoVenda: z.coerce.number().min(0, "Informe o preço de venda"),
+  moedaVenda: moedaEnum,
   comprador: z.string().trim().max(160).optional().default(""),
   dataSaida: dataOpcional,
   observacoes: z.string().trim().max(2000).optional().default(""),

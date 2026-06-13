@@ -89,6 +89,7 @@ export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
       label: "Estoque (potencial)",
       value: brl(m.valorEstoquePotencial),
       icon: Target,
+      hint: "Só ativos precificados (custo + preço previsto)",
       tone: "neutral",
     },
     {
@@ -96,7 +97,7 @@ export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
       value: brl(m.lucroPrevisto),
       icon: PiggyBank,
       tone: sign(m.lucroPrevisto),
-      hint: "Potencial − custo do estoque",
+      hint: "Potencial − custo, sobre o mesmo conjunto precificado",
     },
   ];
 
@@ -136,6 +137,14 @@ export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
           <AlertTriangle className="h-3.5 w-3.5" />
           {m.vendasSemCusto} venda(s) sem custo de aquisição registrado — contam
           na receita, mas ficam fora do lucro e do ROI.
+        </p>
+      )}
+
+      {m.estoqueSemPreco > 0 && (
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-warning">
+          <AlertTriangle className="h-3.5 w-3.5" />
+          {m.estoqueSemPreco} ativo(s) em estoque sem custo e/ou preço previsto —
+          fora do potencial e do lucro previsto.
         </p>
       )}
     </div>

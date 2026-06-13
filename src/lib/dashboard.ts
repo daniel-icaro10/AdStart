@@ -97,6 +97,12 @@ export async function getDashboardData(): Promise<DashboardData> {
       ? null
       : toBRL(a.custoAquisicao, a.moedaCusto, a.taxaCambioNaDia, taxa);
 
+  // Mesma normalização da venda usada em calcularMetricas (consistência total).
+  const precoVendaBRL = (a: AtivoFinanceiro): number =>
+    a.precoVenda == null
+      ? 0
+      : toBRL(a.precoVenda, a.moedaVenda, a.taxaVendaNaDia, taxa);
+
   const emEstoque = ativos.filter(
     (a) => a.statusVenda === "DISPONIVEL" || a.statusVenda === "RESERVADO",
   );
@@ -149,10 +155,11 @@ export async function getDashboardData(): Promise<DashboardData> {
   };
   for (const a of ativos) {
     if (!a.fornecedor) continue;
-    if (a.statusVenda === "VENDIDO" && a.precoVenda != null) {
+    // Só vendas COM custo entram no lucro (igual ao lucroRealizado das métricas).
+    if (a.statusVenda === "VENDIDO" && a.precoVenda != null && a.custoAquisicao != null) {
       const r = ensure(a.fornecedor);
       r.vendidos++;
-      r.lucro += a.precoVenda - (custoBRL(a) ?? 0);
+      r.lucro += precoVendaBRL(a) - (custoBRL(a) ?? 0);
     } else if (a.statusVenda === "PERDIDO") {
       const r = ensure(a.fornecedor);
       r.perdidos++;

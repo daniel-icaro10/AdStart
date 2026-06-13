@@ -109,7 +109,7 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
-  const { origem, id, precoVenda, comprador, dataSaida, observacoes } =
+  const { origem, id, precoVenda, moedaVenda, comprador, dataSaida, observacoes } =
     parsed.data;
 
   const estado = await getEstadoAtivo(origem, id);
@@ -119,6 +119,8 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
     estado.moedaCusto === "USD" && estado.taxaCambioNaDia == null
       ? await getTaxaAtual()
       : undefined;
+  // Congela a taxa da VENDA quando a venda é em dólar (histórico fiel).
+  const taxaVenda = moedaVenda === "USD" ? await getTaxaAtual() : null;
 
   // Guarda atômica: só vende se ainda estiver em estoque (não sobrescreve venda/perda).
   const count = await updateAtivoGuarded(
@@ -127,6 +129,8 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
     EM_ESTOQUE,
     {
       precoVenda,
+      moedaVenda,
+      taxaVendaNaDia: taxaVenda,
       comprador: comprador || null,
       dataSaida: dataSaida ?? new Date(),
       ...(observacoes ? { observacoes } : {}),
@@ -199,6 +203,8 @@ export async function reverterStatus(input: unknown): Promise<FinanceiroResult> 
     id,
     {
       precoVenda: null,
+      moedaVenda: null,
+      taxaVendaNaDia: null,
       comprador: null,
       dataSaida: null,
       motivoPerda: null,
