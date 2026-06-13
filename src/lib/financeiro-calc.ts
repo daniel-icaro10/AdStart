@@ -42,8 +42,12 @@ export interface AtivoFinanceiro {
   dataEntrada: Date | null;
   /** Preço pretendido de venda na moedaCusto, como number. */
   precoPrevisto: number | null;
-  /** Preço real da venda — assumido em BRL. */
+  /** Preço real da venda, na moeda indicada por `moedaVenda`. */
   precoVenda: number | null;
+  /** Moeda do preço de venda. null = tratado como BRL. */
+  moedaVenda: MoedaAtivo | null;
+  /** Taxa USD→BRL congelada na venda. null = usar taxaAtual. */
+  taxaVendaNaDia: number | null;
   comprador: string | null;
   dataSaida: Date | null;
   motivoPerda: string | null;
@@ -94,8 +98,12 @@ export interface MetricasFinanceiras {
   estoqueCustoUSD: number;
   /** Custo do estoque com moeda BRL (ou sem moeda) — somado EM BRL. */
   estoqueCustoBRL: number;
+  /** Potencial de venda do estoque PRECIFICADO (custo + preço previsto). */
   valorEstoquePotencial: number;
+  /** lucroPrevisto = potencial − custo, ambos sobre o MESMO conjunto precificado. */
   lucroPrevisto: number;
+  /** Ativos em estoque SEM precificação completa (sem preço previsto e/ou custo). */
+  estoqueSemPreco: number;
   // ── Contadores ───────────────────────────────────────────────────────
   totalEmEstoque: number;
   totalReservado: number;
@@ -169,6 +177,12 @@ export function calcularMetricas(
     return toBRL(a.precoPrevisto, a.moedaCusto, a.taxaCambioNaDia, taxaAtual);
   };
 
+  // Normalização ÚNICA do preço de venda → BRL (usa a moeda/taxa da VENDA).
+  const precoVendaEmBRL = (a: AtivoFinanceiro): number =>
+    a.precoVenda === null
+      ? 0
+      : toBRL(a.precoVenda, a.moedaVenda, a.taxaVendaNaDia, taxaAtual);
+
   const inPeriod = (date: Date | null): boolean =>
     date !== null && date >= periodo.inicio && date <= periodo.fim;
 
@@ -198,10 +212,10 @@ export function calcularMetricas(
   );
   const investimentoTotal = custoEntradas + totalCustosOp;
 
-  // ── receita realizada ─────────────────────────────────────────────────
+  // ── receita realizada (em BRL, convertendo a venda) ───────────────────
   // Inclui TODOS os vendidos (com ou sem custo registrado)
   const receitaRealizada = vendidosNoPeriodo.reduce(
-    (sum, a) => sum + (a.precoVenda ?? 0),
+    (sum, a) => sum + precoVendaEmBRL(a),
     0,
   );
 
@@ -216,7 +230,7 @@ export function calcularMetricas(
       return sum; // fora do lucro e do ROI
     }
     custoBaseDasVendas += custo;
-    return sum + ((a.precoVenda ?? 0) - custo);
+    return sum + (precoVendaEmBRL(a) - custo);
   }, 0);
 
   const lucroRealizado = lucroVendas - totalCustosOp;
@@ -253,11 +267,25 @@ export function calcularMetricas(
     if (a.moedaCusto === "USD") estoqueCustoUSD += a.custoAquisicao;
     else estoqueCustoBRL += a.custoAquisicao; // BRL ou null → tratado como BRL
   }
-  const valorEstoquePotencial = emEstoque.reduce(
+  // "Precificado" = tem custo E preço previsto > 0. Só esses entram no lucro
+  // previsto, comparando bases EQUIVALENTES (não mistura "potencial de poucos"
+  // com "custo de todos").
+  const precificados = emEstoque.filter(
+    (a) =>
+      a.custoAquisicao !== null &&
+      a.precoPrevisto !== null &&
+      a.precoPrevisto > 0,
+  );
+  const valorEstoquePotencial = precificados.reduce(
     (sum, a) => sum + (previstoEmBRL(a) ?? 0),
     0,
   );
-  const lucroPrevisto = valorEstoquePotencial - valorEstoqueCusto;
+  const custoEstoquePrecificado = precificados.reduce(
+    (sum, a) => sum + (custoEmBRL(a) ?? 0),
+    0,
+  );
+  const lucroPrevisto = valorEstoquePotencial - custoEstoquePrecificado;
+  const estoqueSemPreco = emEstoque.length - precificados.length;
 
   // ── lucro bruto por tipo (sem descontar custos op, para comparação) ───
   const lucroPorTipo: Record<
@@ -271,7 +299,7 @@ export function calcularMetricas(
       lucroPorTipo[tipo] = { lucroRealizado: 0, quantidade: 0 };
     lucroPorTipo[tipo].quantidade++;
     if (custo !== null) {
-      lucroPorTipo[tipo].lucroRealizado += (a.precoVenda ?? 0) - custo;
+      lucroPorTipo[tipo].lucroRealizado += precoVendaEmBRL(a) - custo;
     }
   }
 
@@ -298,6 +326,7 @@ export function calcularMetricas(
     estoqueCustoBRL,
     valorEstoquePotencial,
     lucroPrevisto,
+    estoqueSemPreco,
     totalEmEstoque: emEstoque.filter((a) => a.statusVenda === "DISPONIVEL")
       .length,
     totalReservado: emEstoque.filter((a) => a.statusVenda === "RESERVADO")

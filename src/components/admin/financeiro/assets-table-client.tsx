@@ -322,6 +322,10 @@ function Footer({
 function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
   const { pending, error, run } = useSubmit(venderAtivo);
   const [precoVenda, setPreco] = React.useState("");
+  // Default: mesma moeda do custo (BM em US$ → venda já sugere US$).
+  const [moedaVenda, setMoeda] = React.useState<string>(
+    ativo.moedaCusto ?? "BRL",
+  );
   const [comprador, setComprador] = React.useState("");
   const [dataSaida, setData] = React.useState(hoje());
 
@@ -330,7 +334,14 @@ function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
       onSubmit={(e) => {
         e.preventDefault();
         run(
-          { origem: ativo.origem, id: ativo.id, precoVenda, comprador, dataSaida },
+          {
+            origem: ativo.origem,
+            id: ativo.id,
+            precoVenda,
+            moedaVenda,
+            comprador,
+            dataSaida,
+          },
           onDone,
         );
       }}
@@ -340,18 +351,32 @@ function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
         <DialogTitle>Marcar como vendido</DialogTitle>
       </DialogHeader>
       <p className="text-sm text-muted-foreground">{ativo.titulo}</p>
-      <div className="space-y-1.5">
-        <Label>Preço de venda (R$) *</Label>
-        <Input
-          type="number"
-          step="0.01"
-          min="0"
-          required
-          autoFocus
-          value={precoVenda}
-          onChange={(e) => setPreco(e.target.value)}
-          placeholder="Ex: 1500"
-        />
+      <div className="grid grid-cols-[1fr_130px] gap-3">
+        <div className="space-y-1.5">
+          <Label>Preço de venda *</Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            required
+            autoFocus
+            value={precoVenda}
+            onChange={(e) => setPreco(e.target.value)}
+            placeholder="Ex: 1500"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Moeda</Label>
+          <Select value={moedaVenda} onValueChange={setMoeda}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="BRL">Real (R$)</SelectItem>
+              <SelectItem value="USD">Dólar (US$)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
