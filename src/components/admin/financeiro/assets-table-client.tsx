@@ -11,10 +11,11 @@ import {
   ChevronLeft,
   ChevronRight,
   SearchX,
+  Users,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatInt } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,19 +43,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { STATUS_VENDA_META, type StatusVenda } from "@/lib/constants";
+import {
+  STATUS_VENDA_META,
+  CATEGORIA_META,
+  PAGE_KIND_META,
+  TIER_BADGE_CLASS,
+  getIconeEmoji,
+  type StatusVenda,
+  type Categoria,
+} from "@/lib/constants";
 import type { SerializedAtivoFinanceiro } from "@/lib/financeiro";
 import {
   venderAtivo,
   marcarPerdido,
   salvarFinanceiroAtivo,
   reverterStatus,
+  getAtivoDetalhe,
   type FinanceiroResult,
+  type AtivoDetalhe,
 } from "@/app/admin/financeiro/actions";
 import { TIPO_LABELS } from "./assets-filters";
 
 type Ativo = SerializedAtivoFinanceiro;
-type ModalKind = "vender" | "perder" | "editar" | "reverter";
+type ModalKind = "vender" | "perder" | "editar" | "reverter" | "detalhe";
 
 const moedaFmt = (v: number | null, moeda: string | null) =>
   v == null ? "—" : formatCurrency(v, (moeda as "BRL" | "USD") ?? "BRL");
@@ -138,7 +149,14 @@ export function AssetsTableClient({
                 return (
                   <TableRow key={`${a.origem}-${a.id}`}>
                     <TableCell>
-                      <div className="font-medium">{a.titulo}</div>
+                      <button
+                        type="button"
+                        onClick={() => setModal({ kind: "detalhe", ativo: a })}
+                        title="Ver detalhes do ativo"
+                        className="rounded text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {a.titulo}
+                      </button>
                       <div className="text-xs text-muted-foreground">
                         {a.origem === "asset" ? "BM" : "Página"}
                       </div>
@@ -253,7 +271,20 @@ export function AssetsTableClient({
 
       {/* modais */}
       <Dialog open={!!modal} onOpenChange={(o) => !o && setModal(null)}>
-        <DialogContent className="admin-theme max-w-md">
+        <DialogContent
+          className={cn(
+            "admin-theme",
+            modal?.kind === "detalhe"
+              ? "max-h-[85vh] max-w-2xl overflow-y-auto"
+              : "max-w-md",
+          )}
+        >
+          {modal?.kind === "detalhe" && (
+            <DetalheView
+              ativo={modal.ativo}
+              onEdit={() => setModal({ kind: "editar", ativo: modal.ativo })}
+            />
+          )}
           {modal?.kind === "vender" && (
             <VenderForm ativo={modal.ativo} onDone={onDone} />
           )}
@@ -566,5 +597,267 @@ function ReverterForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
       <ErrorMsg msg={error} />
       <Footer pending={pending} onCancel={onDone} label="Reverter" variant="destructive" />
     </form>
+  );
+}
+
+// ─── Detalhe do ativo (read-only) ───────────────────────────────────────────────
+
+function Field({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+      <div className="text-sm font-medium">{value}</div>
+    </div>
+  );
+}
+
+function Bloco({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function gastosResumo(d: Extract<AtivoDetalhe, { origem: "asset" }>): string {
+  const parts: string[] = [];
+  if (d.totalGastosBRL != null) parts.push(formatCurrency(d.totalGastosBRL, "BRL"));
+  if (d.totalGastosUSD != null) parts.push(formatCurrency(d.totalGastosUSD, "USD"));
+  return parts.join(" · ") || "—";
+}
+
+function AssetDetalhe({
+  data,
+}: {
+  data: Extract<AtivoDetalhe, { origem: "asset" }>;
+}) {
+  const categoria = data.categoria as Categoria;
+  const catMeta = CATEGORIA_META[categoria];
+  const emoji = getIconeEmoji(data.icone);
+  const status = data.statusVenda as StatusVenda;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-start gap-3">
+        {emoji && <span className="text-2xl leading-none">{emoji}</span>}
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold leading-snug">{data.titulo}</h3>
+          <p className="text-xs text-muted-foreground">Código: {data.codigo}</p>
+        </div>
+        <Badge className={cn("border", STATUS_VENDA_META[status].badgeClass)}>
+          {STATUS_VENDA_META[status].label}
+        </Badge>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {catMeta && (
+          <Badge className={cn("border", catMeta.badgeClass)}>
+            {catMeta.label}
+          </Badge>
+        )}
+        {data.tier != null && (
+          <Badge className={TIER_BADGE_CLASS}>Tier {data.tier}</Badge>
+        )}
+        {data.verificada && <Badge variant="secondary">Verificada</Badge>}
+        {data.semDividas && <Badge variant="secondary">Sem dívidas</Badge>}
+        {data.semBloqueios && <Badge variant="secondary">Sem bloqueios</Badge>}
+        {data.destaque && <Badge variant="secondary">Nova</Badge>}
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+        <Field label="Moeda" value={data.moeda} />
+        <Field label="Valor (vitrine)" value={formatCurrency(data.valor, "BRL")} />
+        <Field
+          label="Qtd. contas"
+          value={data.qtdContas != null ? formatInt(data.qtdContas) : "—"}
+        />
+        {data.anoCriacao != null && (
+          <Field label="Ano de criação" value={data.anoCriacao} />
+        )}
+        {data.fornecedor && <Field label="Fornecedor" value={data.fornecedor} />}
+        {(data.totalGastosBRL != null || data.totalGastosUSD != null) && (
+          <Field label="Gastos hist." value={gastosResumo(data)} />
+        )}
+      </div>
+
+      {data.conteudo && (
+        <Bloco label="Descrição">
+          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+            {data.conteudo}
+          </p>
+        </Bloco>
+      )}
+
+      {data.contas.length > 0 && (
+        <Bloco label={`Contas de anúncio (${data.contas.length})`}>
+          <ul className="mt-1.5 space-y-1">
+            {data.contas.map((c, i) => (
+              <li
+                key={i}
+                className="flex items-center justify-between rounded-md border border-border bg-background/40 px-2.5 py-1.5 text-sm"
+              >
+                <span className="font-medium">{c.nome}</span>
+                <span className="text-xs text-muted-foreground">
+                  {c.status}
+                  {c.gastos != null
+                    ? ` · ${formatCurrency(c.gastos, "BRL")}`
+                    : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Bloco>
+      )}
+
+      {data.imagens.length > 0 && (
+        <Bloco label="Imagens">
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {data.imagens.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={src}
+                alt=""
+                className="h-24 w-24 rounded-lg border border-border object-cover"
+              />
+            ))}
+          </div>
+        </Bloco>
+      )}
+
+      {data.observacoes && (
+        <Bloco label="Observações">
+          <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">
+            {data.observacoes}
+          </p>
+        </Bloco>
+      )}
+    </div>
+  );
+}
+
+function PageDetalhe({
+  data,
+}: {
+  data: Extract<AtivoDetalhe, { origem: "page" }>;
+}) {
+  const status = data.status as StatusVenda;
+  const kindMeta = PAGE_KIND_META[data.kind as "COM" | "SEM"];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold leading-snug">{data.titulo}</h3>
+          <p className="text-xs text-muted-foreground">Página · {data.nicho}</p>
+        </div>
+        <Badge className={cn("border", STATUS_VENDA_META[status].badgeClass)}>
+          {STATUS_VENDA_META[status].label}
+        </Badge>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        <Badge variant="secondary">{kindMeta?.label ?? data.kind}</Badge>
+        {data.destaque && <Badge variant="secondary">Nova</Badge>}
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+        <Field label="Nicho" value={data.nicho} />
+        <Field
+          label="Seguidores"
+          value={
+            <span className="inline-flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" />
+              {formatInt(data.seguidores)}
+            </span>
+          }
+        />
+        <Field label="Valor (vitrine)" value={formatCurrency(data.valor, "BRL")} />
+        {data.anoCriacao != null && (
+          <Field label="Ano de criação" value={data.anoCriacao} />
+        )}
+        {data.fornecedor && <Field label="Fornecedor" value={data.fornecedor} />}
+      </div>
+
+      {data.observacoes && (
+        <Bloco label="Observações">
+          <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">
+            {data.observacoes}
+          </p>
+        </Bloco>
+      )}
+    </div>
+  );
+}
+
+function DetalheView({
+  ativo,
+  onEdit,
+}: {
+  ativo: Ativo;
+  onEdit: () => void;
+}) {
+  const [data, setData] = React.useState<AtivoDetalhe | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let active = true;
+    setLoading(true);
+    getAtivoDetalhe(ativo.origem, ativo.id).then((d) => {
+      if (active) {
+        setData(d);
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [ativo.origem, ativo.id]);
+
+  return (
+    <div className="space-y-4">
+      <DialogHeader>
+        <DialogTitle>Detalhes do ativo</DialogTitle>
+      </DialogHeader>
+
+      {loading ? (
+        <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Carregando…
+        </div>
+      ) : !data ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Ativo não encontrado.
+        </p>
+      ) : data.origem === "asset" ? (
+        <AssetDetalhe data={data} />
+      ) : (
+        <PageDetalhe data={data} />
+      )}
+
+      <div className="flex justify-end gap-2 border-t border-border pt-3">
+        <Button type="button" variant="outline" onClick={onEdit}>
+          <Pencil className="h-4 w-4" />
+          Editar financeiro
+        </Button>
+      </div>
+    </div>
   );
 }

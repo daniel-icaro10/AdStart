@@ -21,6 +21,123 @@ async function requireAdmin() {
   if (!session?.user) throw new Error("Não autorizado.");
 }
 
+// ─── Detalhe do ativo (identificação) ──────────────────────────────────────────
+
+export type AtivoDetalheConta = {
+  nome: string;
+  status: string;
+  gastos: number | null;
+};
+
+export type AtivoDetalhe =
+  | {
+      origem: "asset";
+      codigo: string;
+      titulo: string;
+      categoria: string;
+      tipo: string | null;
+      icone: string | null;
+      tier: number | null;
+      anoCriacao: number | null;
+      moeda: string;
+      valor: number;
+      conteudo: string | null;
+      verificada: boolean;
+      semDividas: boolean;
+      semBloqueios: boolean;
+      qtdContas: number | null;
+      totalGastosBRL: number | null;
+      totalGastosUSD: number | null;
+      destaque: boolean;
+      statusVenda: string;
+      fornecedor: string | null;
+      observacoes: string | null;
+      contas: AtivoDetalheConta[];
+      imagens: string[];
+    }
+  | {
+      origem: "page";
+      titulo: string;
+      nicho: string;
+      kind: string;
+      seguidores: number;
+      anoCriacao: number | null;
+      valor: number;
+      status: string;
+      destaque: boolean;
+      tipo: string | null;
+      fornecedor: string | null;
+      observacoes: string | null;
+    };
+
+/**
+ * Detalhe completo de um ativo para identificação no financeiro (read-only):
+ * código, categoria, conteúdo, contas e imagens. Admin-only.
+ */
+export async function getAtivoDetalhe(
+  origem: "asset" | "page",
+  id: string,
+): Promise<AtivoDetalhe | null> {
+  await requireAdmin();
+
+  if (origem === "asset") {
+    const a = await prisma.asset.findUnique({
+      where: { id },
+      include: {
+        contas: { orderBy: { nome: "asc" } },
+        imagens: { orderBy: { ordem: "asc" } },
+      },
+    });
+    if (!a) return null;
+    return {
+      origem: "asset",
+      codigo: a.codigo,
+      titulo: a.titulo,
+      categoria: a.categoria,
+      tipo: a.tipo,
+      icone: a.icone,
+      tier: a.tier,
+      anoCriacao: a.anoCriacao,
+      moeda: a.moeda,
+      valor: a.valor,
+      conteudo: a.conteudo,
+      verificada: a.verificada,
+      semDividas: a.semDividas,
+      semBloqueios: a.semBloqueios,
+      qtdContas: a.qtdContas,
+      totalGastosBRL: a.totalGastosBRL,
+      totalGastosUSD: a.totalGastosUSD,
+      destaque: a.destaque,
+      statusVenda: a.statusVenda,
+      fornecedor: a.fornecedor,
+      observacoes: a.observacoes,
+      contas: a.contas.map((c) => ({
+        nome: c.nome,
+        status: c.status,
+        gastos: c.gastos,
+      })),
+      imagens: a.imagens.map((im) => im.data),
+    };
+  }
+
+  const p = await prisma.page.findUnique({ where: { id } });
+  if (!p) return null;
+  return {
+    origem: "page",
+    titulo: p.nome,
+    nicho: p.nicho,
+    kind: p.kind,
+    seguidores: p.seguidores,
+    anoCriacao: p.anoCriacao,
+    valor: p.valor,
+    status: p.status,
+    destaque: p.destaque,
+    tipo: p.tipo,
+    fornecedor: p.fornecedor,
+    observacoes: p.observacoes,
+  };
+}
+
 function revalidate() {
   // Financeiro + vitrine pública + admin de ativos (status afeta todos).
   revalidatePath("/admin/financeiro");
