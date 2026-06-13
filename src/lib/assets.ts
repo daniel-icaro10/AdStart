@@ -31,16 +31,27 @@ const PUBLIC_ASSET_SELECT = {
 } as const satisfies Prisma.AssetSelect;
 
 /**
- * Busca os ativos visíveis no catálogo público.
- * Vendidos são INCLUÍDOS para que apareçam com selo "VENDIDO" (não some o card),
- * mas você pode filtrá-los aqui se preferir ocultar completamente.
+ * Busca as BMs ativas do catálogo público (board por categoria).
+ * Mostra apenas DISPONÍVEL/RESERVADO — vendidos vão para a aba "Vendidos"
+ * (getVendidosAssets) e perdidos nunca aparecem na vitrine.
  */
 export async function getCatalogAssets(): Promise<AssetWithContas[]> {
   return prisma.asset.findMany({
-    // Ativos PERDIDOS (banidos/restritos) nunca aparecem na vitrine pública.
-    where: { statusVenda: { not: "PERDIDO" } },
+    where: { statusVenda: { in: ["DISPONIVEL", "RESERVADO"] } },
     orderBy: [{ destaque: "desc" }, { valor: "desc" }, { createdAt: "desc" }],
     // Allowlist: só campos públicos saem para a vitrine (sem dados financeiros).
+    select: PUBLIC_ASSET_SELECT,
+  });
+}
+
+/**
+ * BMs já vendidas, para a aba "Vendidos" (prova de giro). Mais recentes primeiro.
+ * Mesma allowlist pública — nenhum dado financeiro vaza.
+ */
+export async function getVendidosAssets(): Promise<AssetWithContas[]> {
+  return prisma.asset.findMany({
+    where: { statusVenda: "VENDIDO" },
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
     select: PUBLIC_ASSET_SELECT,
   });
 }
