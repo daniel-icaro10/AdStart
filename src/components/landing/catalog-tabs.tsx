@@ -2,17 +2,21 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { BadgeCheck, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { CatalogExplorer } from "./catalog-explorer";
 import { PagesSection } from "./pages-section";
+import { VendidosSection } from "./vendidos-section";
 import type { Categoria } from "@/lib/constants";
 import type { AssetWithContas } from "@/types";
 import type { PagePublic } from "@/types";
 
-type View = "BMS" | "PAGINAS";
+type View = "BMS" | "PAGINAS" | "VENDIDOS";
 
 const STORAGE_KEY = "adstart:catalog-view";
+
+const VIEWS: View[] = ["BMS", "PAGINAS", "VENDIDOS"];
 
 /**
  * Seletor no topo do catálogo da landing: alterna entre exibir somente as BMs
@@ -22,10 +26,14 @@ const STORAGE_KEY = "adstart:catalog-view";
 export function CatalogTabs({
   assets,
   pages,
+  vendidosAssets,
+  vendidosPages,
   order,
 }: {
   assets: AssetWithContas[];
   pages: PagePublic[];
+  vendidosAssets: AssetWithContas[];
+  vendidosPages: PagePublic[];
   order?: Categoria[];
 }) {
   const [view, setView] = React.useState<View>("BMS");
@@ -33,7 +41,7 @@ export function CatalogTabs({
   // Restaura a aba escolhida anteriormente.
   React.useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === "BMS" || saved === "PAGINAS") setView(saved);
+    if (saved && (VIEWS as string[]).includes(saved)) setView(saved as View);
   }, []);
 
   const select = (v: View) => {
@@ -41,12 +49,14 @@ export function CatalogTabs({
     localStorage.setItem(STORAGE_KEY, v);
   };
 
-  const tabs: { value: View; label: string; icon: string }[] = [
-    { value: "BMS", label: "BMs", icon: "/icon-bm.png" },
-    { value: "PAGINAS", label: "Páginas", icon: "/icon-paginas.png" },
-  ];
+  const tabs: { value: View; label: string; img?: string; Icon?: LucideIcon }[] =
+    [
+      { value: "BMS", label: "BMs", img: "/icon-bm.png" },
+      { value: "PAGINAS", label: "Páginas", img: "/icon-paginas.png" },
+      { value: "VENDIDOS", label: "Vendidos", Icon: BadgeCheck },
+    ];
 
-  const activeIndex = view === "BMS" ? 0 : 1;
+  const activeIndex = VIEWS.indexOf(view);
 
   return (
     <section id="catalogo" className="container pt-8 pb-16 sm:pt-10 sm:pb-20">
@@ -56,7 +66,7 @@ export function CatalogTabs({
           {/* pílula deslizante */}
           <span
             aria-hidden
-            className="absolute left-1 top-1 bottom-1 w-[124px] rounded-full bg-primary shadow-[0_6px_24px_-6px_rgb(var(--brand)/0.8)] transition-transform duration-300 ease-out sm:w-[140px]"
+            className="absolute left-1 top-1 bottom-1 w-[106px] rounded-full bg-primary shadow-[0_6px_24px_-6px_rgb(var(--brand)/0.8)] transition-transform duration-300 ease-out sm:w-[132px]"
             style={{ transform: `translateX(${activeIndex * 100}%)` }}
           />
           {tabs.map((t) => {
@@ -68,22 +78,26 @@ export function CatalogTabs({
                 onClick={() => select(t.value)}
                 aria-pressed={active}
                 className={cn(
-                  "relative z-10 inline-flex w-[124px] items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition-colors sm:w-[140px]",
+                  "relative z-10 inline-flex w-[106px] items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition-colors sm:w-[132px]",
                   active
                     ? "text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Image
-                  src={t.icon}
-                  alt=""
-                  width={32}
-                  height={32}
-                  className={cn(
-                    "object-contain",
-                    t.value === "PAGINAS" ? "h-8 w-8" : "h-5 w-5",
-                  )}
-                />
+                {t.img ? (
+                  <Image
+                    src={t.img}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className={cn(
+                      "object-contain",
+                      t.value === "PAGINAS" ? "h-8 w-8" : "h-5 w-5",
+                    )}
+                  />
+                ) : t.Icon ? (
+                  <t.Icon className="h-5 w-5" />
+                ) : null}
                 {t.label}
               </button>
             );
@@ -93,8 +107,10 @@ export function CatalogTabs({
 
       {view === "BMS" ? (
         <CatalogExplorer assets={assets} order={order} />
-      ) : (
+      ) : view === "PAGINAS" ? (
         <PagesSection pages={pages} />
+      ) : (
+        <VendidosSection assets={vendidosAssets} pages={vendidosPages} />
       )}
     </section>
   );

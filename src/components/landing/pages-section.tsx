@@ -29,7 +29,7 @@ const TABS: { value: PageFollowerKind; label: string; icon: typeof Users }[] = [
 ];
 
 /** Card de uma página. */
-function PageCard({ page }: { page: PagePublic }) {
+export function PageCard({ page }: { page: PagePublic }) {
   const status = page.status as StatusVenda;
   const isVendido = status === "VENDIDO";
   const whatsappLink = buildWhatsappLink(

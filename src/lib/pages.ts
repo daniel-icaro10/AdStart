@@ -16,12 +16,24 @@ const PUBLIC_PAGE_SELECT = {
   destaque: true,
 } as const satisfies Prisma.PageSelect;
 
-/** Páginas exibidas no catálogo público (vendidas aparecem com selo; perdidas, não). */
+/**
+ * Páginas ativas do catálogo público. Mostra apenas DISPONÍVEL/RESERVADO —
+ * vendidas vão para a aba "Vendidos" (getVendidosPages); perdidas, nunca.
+ */
 export function getCatalogPages(): Promise<PagePublic[]> {
   return prisma.page.findMany({
-    where: { status: { not: "PERDIDO" } },
+    where: { status: { in: ["DISPONIVEL", "RESERVADO"] } },
     orderBy: [{ destaque: "desc" }, { valor: "desc" }, { createdAt: "desc" }],
     // Allowlist: nenhum campo financeiro sai para a vitrine.
+    select: PUBLIC_PAGE_SELECT,
+  });
+}
+
+/** Páginas já vendidas, para a aba "Vendidos". Mais recentes primeiro. */
+export function getVendidosPages(): Promise<PagePublic[]> {
+  return prisma.page.findMany({
+    where: { status: "VENDIDO" },
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
     select: PUBLIC_PAGE_SELECT,
   });
 }
