@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, FileText, Users, UserX } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,13 +17,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageForm } from "@/components/admin/page-form";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { deletePage } from "@/app/admin/actions";
-import { formatCurrency, formatInt } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import {
   PAGE_KIND_META,
   STATUS_VENDA_META,
   type StatusVenda,
 } from "@/lib/constants";
-import type { Page } from "@prisma/client";
+import type { PageWithImages } from "@/types";
 
 /** Colunas do board do admin, separadas por tipo (com/sem seguidores). */
 const COLUMNS: { kind: "COM" | "SEM"; label: string; accent: string }[] = [
@@ -35,16 +35,18 @@ const COLUMNS: { kind: "COM" | "SEM"; label: string; accent: string }[] = [
  * Visão das páginas no estilo Notion: board com colunas por tipo; cada card é
  * clicável e abre um painel de edição (modal). "Nova página" abre o mesmo painel.
  */
-export function PagesManager({ pages }: { pages: Page[] }) {
+export function PagesManager({ pages }: { pages: PageWithImages[] }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [current, setCurrent] = React.useState<Page | undefined>(undefined);
+  const [current, setCurrent] = React.useState<PageWithImages | undefined>(
+    undefined,
+  );
 
   const openNew = () => {
     setCurrent(undefined);
     setOpen(true);
   };
-  const openEdit = (page: Page) => {
+  const openEdit = (page: PageWithImages) => {
     setCurrent(page);
     setOpen(true);
   };
@@ -53,7 +55,7 @@ export function PagesManager({ pages }: { pages: Page[] }) {
     router.refresh();
   };
 
-  const renderCard = (p: Page) => {
+  const renderCard = (p: PageWithImages) => {
     const status = p.status as StatusVenda;
     return (
       <div
@@ -80,7 +82,6 @@ export function PagesManager({ pages }: { pages: Page[] }) {
         </span>
 
         <div className="flex flex-wrap items-center gap-1.5 pr-8">
-          <Badge variant="secondary">{p.nicho}</Badge>
           <Badge className={cn("border", STATUS_VENDA_META[status].badgeClass)}>
             {STATUS_VENDA_META[status].label}
           </Badge>
@@ -89,31 +90,31 @@ export function PagesManager({ pages }: { pages: Page[] }) {
               Nova
             </Badge>
           )}
+          {p.imagens.length > 0 && (
+            <Badge variant="secondary">{p.imagens.length} img</Badge>
+          )}
         </div>
 
         <h3 className="mt-3 font-semibold leading-snug">{p.nome}</h3>
 
-        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-          {p.kind === "COM" ? (
-            <span className="inline-flex items-center gap-1 tabular-nums">
-              <Users className="h-3.5 w-3.5" />
-              {formatInt(p.seguidores)} seguidores
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1">
-              <UserX className="h-3.5 w-3.5" />
-              Sem seguidores
-            </span>
-          )}
-        </div>
+        {p.conteudo && (
+          <p className="mt-2 line-clamp-2 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+            {p.conteudo}
+          </p>
+        )}
 
-        <div className="mt-4 border-t border-border pt-3">
-          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-            Valor
+        <div className="mt-4 flex items-end justify-between border-t border-border pt-3">
+          <div>
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Valor
+            </div>
+            <div className="text-xl font-bold tabular-nums">
+              {formatCurrency(p.valor, "BRL")}
+            </div>
           </div>
-          <div className="text-xl font-bold tabular-nums">
-            {formatCurrency(p.valor, "BRL")}
-          </div>
+          <span className="text-[11px] text-muted-foreground">
+            {PAGE_KIND_META[p.kind as "COM" | "SEM"].label}
+          </span>
         </div>
       </div>
     );

@@ -58,13 +58,14 @@ export type AtivoDetalhe =
   | {
       origem: "page";
       titulo: string;
-      nicho: string;
+      nicho: string | null;
       kind: string;
       seguidores: number;
       anoCriacao: number | null;
       valor: number;
       status: string;
       destaque: boolean;
+      conteudo: string | null;
       tipo: string | null;
       fornecedor: string | null;
       observacoes: string | null;
@@ -132,6 +133,7 @@ export async function getAtivoDetalhe(
     valor: p.valor,
     status: p.status,
     destaque: p.destaque,
+    conteudo: p.conteudo,
     tipo: p.tipo,
     fornecedor: p.fornecedor,
     observacoes: p.observacoes,

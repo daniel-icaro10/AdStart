@@ -1,4 +1,4 @@
-import type { Prisma, AdAccount, AssetImage } from "@prisma/client";
+import type { Prisma, AdAccount, AssetImage, PageImage } from "@prisma/client";
 
 /**
  * Campos PÚBLICOS de um Asset exibidos na vitrine. Allowlist explícita — NUNCA
@@ -37,13 +37,11 @@ export type PagePublic = Prisma.PageGetPayload<{
   select: {
     id: true;
     nome: true;
-    nicho: true;
     kind: true;
-    seguidores: true;
-    anoCriacao: true;
     status: true;
     valor: true;
     destaque: true;
+    conteudo: true;
   };
 }>;
 
@@ -51,6 +49,11 @@ export type PagePublic = Prisma.PageGetPayload<{
 export type AssetWithDetails = Prisma.AssetGetPayload<{
   include: { contas: true; imagens: true };
 }> & { contas: AdAccount[]; imagens: AssetImage[] };
+
+/** Página com imagens — usado na área admin (edição, dados completos). */
+export type PageWithImages = Prisma.PageGetPayload<{
+  include: { imagens: true };
+}> & { imagens: PageImage[] };
 
 /** Estatísticas agregadas exibidas na StatBar da landing. */
 export interface CatalogStats {

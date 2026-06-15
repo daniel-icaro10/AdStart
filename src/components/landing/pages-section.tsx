@@ -1,24 +1,18 @@
 "use client";
 
 import * as React from "react";
-import {
-  Users,
-  UserX,
-  Calendar,
-  Sparkles,
-  MessageCircle,
-} from "lucide-react";
+import { Users, UserX, Sparkles } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useTilt } from "@/hooks/use-tilt";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   PAGE_KIND_META,
   STATUS_VENDA_META,
   type StatusVenda,
 } from "@/lib/constants";
-import { formatCurrency, formatInt } from "@/lib/format";
-import { buildWhatsappLink } from "@/lib/config";
+import { formatCurrency } from "@/lib/format";
+import { PageDetailModal } from "./page-detail-modal";
 import type { PagePublic } from "@/types";
 
 type PageFollowerKind = "COM" | "SEM";
@@ -28,97 +22,73 @@ const TABS: { value: PageFollowerKind; label: string; icon: typeof Users }[] = [
   { value: "SEM", label: "Sem seguidores", icon: UserX },
 ];
 
-/** Card de uma página. */
+/** Card de uma página (estilo BM). Clicável → abre o modal de detalhes. */
 export function PageCard({ page }: { page: PagePublic }) {
   const status = page.status as StatusVenda;
   const isVendido = status === "VENDIDO";
-
-  // Mensagem do WhatsApp com os dados da página clicada.
-  const whatsappLink = buildWhatsappLink(
-    [
-      "Olá! Tenho interesse nesta página 👇",
-      "",
-      `*${page.nome}*`,
-      `• Nicho: ${page.nicho}`,
-      page.kind === "COM"
-        ? `• Seguidores: ${formatInt(page.seguidores ?? 0)}`
-        : "• Sem seguidores",
-      ...(page.valor > 0
-        ? [`• Preço: ${formatCurrency(page.valor, "BRL")}`]
-        : []),
-      ...(page.anoCriacao != null
-        ? [`• Ano de criação: ${page.anoCriacao}`]
-        : []),
-      "",
-      "Pode me passar mais detalhes?",
-    ].join("\n"),
-  );
+  const kindMeta = PAGE_KIND_META[page.kind as "COM" | "SEM"];
+  const [open, setOpen] = React.useState(false);
+  const tilt = useTilt<HTMLButtonElement>();
 
   return (
-    <div
-      className={cn(
-        "ad-hover-glow flex flex-col rounded-xl p-4 shadow-sm",
-        PAGE_KIND_META[page.kind as "COM" | "SEM"].cardClass,
-        isVendido && "opacity-60",
-      )}
-    >
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Badge variant="secondary">{page.nicho}</Badge>
-        {page.destaque && !isVendido && (
-          <Badge className="border border-amber-500/30 bg-amber-500/15 text-amber-400">
-            <Sparkles className="h-3 w-3" />
-            Nova
-          </Badge>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        ref={tilt.ref}
+        onMouseMove={tilt.onMouseMove}
+        onMouseLeave={tilt.onMouseLeave}
+        className={cn(
+          "group ad-hover-glow w-full rounded-xl p-4 text-left shadow-sm",
+          kindMeta.cardClass,
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          isVendido && "opacity-60",
         )}
-        <Badge className={cn("border", STATUS_VENDA_META[status].badgeClass)}>
-          {STATUS_VENDA_META[status].label}
-        </Badge>
-      </div>
-
-      <h3 className="mt-3 font-semibold leading-snug">{page.nome}</h3>
-
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-        {page.kind === "COM" ? (
-          <span className="inline-flex items-center gap-1">
-            <Users className="h-3.5 w-3.5" />
-            {formatInt(page.seguidores ?? 0)} seguidores
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1">
-            <UserX className="h-3.5 w-3.5" />
-            Sem seguidores
-          </span>
-        )}
-        {page.anoCriacao && (
-          <span className="inline-flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5" />
-            {page.anoCriacao}
-          </span>
-        )}
-      </div>
-
-      <div className="mt-4 flex items-end justify-between border-t border-border pt-3">
-        <div>
-          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-            Valor
-          </div>
-          <div className="text-2xl font-bold">
-            {formatCurrency(page.valor, "BRL")}
-          </div>
+      >
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge variant="secondary">{kindMeta.label}</Badge>
+          {page.destaque && !isVendido && (
+            <Badge className="border border-amber-500/30 bg-amber-500/15 text-amber-400">
+              <Sparkles className="h-3 w-3" />
+              Nova
+            </Badge>
+          )}
+          {isVendido && (
+            <Badge className={cn("border", STATUS_VENDA_META.VENDIDO.badgeClass)}>
+              Vendido
+            </Badge>
+          )}
         </div>
-        <Button
-          asChild
-          variant="whatsapp"
-          size="sm"
-          disabled={isVendido}
-        >
-          <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-            <MessageCircle className="h-4 w-4" />
-            Interesse
-          </a>
-        </Button>
-      </div>
-    </div>
+
+        <h3 className="mt-3 font-semibold leading-snug">{page.nome}</h3>
+
+        {page.conteudo && (
+          <p className="mt-2 line-clamp-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+            {page.conteudo}
+          </p>
+        )}
+
+        <div className="mt-3 flex items-end justify-between gap-2 border-t border-border pt-3">
+          {page.valor > 0 ? (
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                Preço
+              </div>
+              <div className="text-lg font-bold leading-none">
+                {formatCurrency(page.valor, "BRL")}
+              </div>
+            </div>
+          ) : (
+            <span />
+          )}
+          <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">
+            Ver detalhes →
+          </span>
+        </div>
+      </button>
+
+      <PageDetailModal page={page} open={open} onOpenChange={setOpen} />
+    </>
   );
 }
 

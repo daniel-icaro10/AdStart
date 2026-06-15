@@ -93,13 +93,16 @@ model AdAccount {
 model Page {
   id         String  @id @default(cuid())
   nome       String
-  nicho      String
+  nicho      String? // legado — info agora vai no texto livre `conteudo`
   kind       String // "COM" | "SEM" (com ou sem seguidores)
   seguidores Int     @default(0)
   anoCriacao Int?
   status     String // "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "PERDIDO"
   valor      Float
   destaque   Boolean @default(false)
+  conteudo   String? // descrição em texto livre (estilo Notion, igual à BM)
+
+  imagens PageImage[] // imagens exibidas no modal de detalhes (até 3)
 
   // ─── Campos financeiros ─────────────────────────────────────────────────
   /// Tipo do ativo para fins financeiros: "PERFIL" | "PAGINA"
@@ -123,6 +126,15 @@ model Page {
 
   @@index([status, dataSaida])
   @@index([status, dataEntrada])
+}
+
+/// Imagem de uma Página (data URL base64). Exibida no modal de detalhes.
+model PageImage {
+  id     String @id @default(cuid())
+  pageId String
+  page   Page   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  data   String // data URL (base64)
+  ordem  Int    @default(0)
 }
 
 /// Despesa operacional que não é compra de ativo mas impacta o lucro real.

@@ -766,7 +766,9 @@ function PageDetalhe({
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold leading-snug">{data.titulo}</h3>
-          <p className="text-xs text-muted-foreground">Página · {data.nicho}</p>
+          <p className="text-xs text-muted-foreground">
+            Página{data.nicho ? ` · ${data.nicho}` : ""}
+          </p>
         </div>
         <Badge className={cn("border", STATUS_VENDA_META[status].badgeClass)}>
           {STATUS_VENDA_META[status].label}
@@ -779,22 +781,32 @@ function PageDetalhe({
       </div>
 
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-        <Field label="Nicho" value={data.nicho} />
-        <Field
-          label="Seguidores"
-          value={
-            <span className="inline-flex items-center gap-1">
-              <Users className="h-3.5 w-3.5" />
-              {formatInt(data.seguidores)}
-            </span>
-          }
-        />
+        {data.nicho && <Field label="Nicho" value={data.nicho} />}
+        {data.seguidores > 0 && (
+          <Field
+            label="Seguidores"
+            value={
+              <span className="inline-flex items-center gap-1">
+                <Users className="h-3.5 w-3.5" />
+                {formatInt(data.seguidores)}
+              </span>
+            }
+          />
+        )}
         <Field label="Valor (vitrine)" value={formatCurrency(data.valor, "BRL")} />
         {data.anoCriacao != null && (
           <Field label="Ano de criação" value={data.anoCriacao} />
         )}
         {data.fornecedor && <Field label="Fornecedor" value={data.fornecedor} />}
       </div>
+
+      {data.conteudo && (
+        <Bloco label="Descrição">
+          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+            {data.conteudo}
+          </p>
+        </Bloco>
+      )}
 
       {data.observacoes && (
         <Bloco label="Observações">

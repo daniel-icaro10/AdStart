@@ -150,7 +150,20 @@ export async function createPage(input: unknown): Promise<ActionResult> {
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
-  const page = await prisma.page.create({ data: parsed.data });
+  const data = parsed.data;
+  const page = await prisma.page.create({
+    data: {
+      nome: data.nome,
+      kind: data.kind,
+      status: data.status,
+      valor: data.valor,
+      destaque: data.destaque,
+      conteudo: data.conteudo || null,
+      imagens: {
+        create: (data.imagens ?? []).map((url, i) => ({ data: url, ordem: i })),
+      },
+    },
+  });
   revalidatePages();
   return { ok: true, id: page.id };
 }
@@ -164,9 +177,37 @@ export async function updatePage(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
-  await prisma.page.update({ data: parsed.data, where: { id } });
+  const data = parsed.data;
+  // Substitui as imagens (simples e previsível para o MVP).
+  await prisma.$transaction([
+    prisma.pageImage.deleteMany({ where: { pageId: id } }),
+    prisma.page.update({
+      where: { id },
+      data: {
+        nome: data.nome,
+        kind: data.kind,
+        status: data.status,
+        valor: data.valor,
+        destaque: data.destaque,
+        conteudo: data.conteudo || null,
+        imagens: {
+          create: (data.imagens ?? []).map((url, i) => ({ data: url, ordem: i })),
+        },
+      },
+    }),
+  ]);
   revalidatePages();
   return { ok: true, id };
+}
+
+/** Lê as imagens (data URLs) de uma página — usado pelo modal de detalhes. */
+export async function fetchPageImagens(id: string): Promise<string[]> {
+  const imgs = await prisma.pageImage.findMany({
+    where: { pageId: id },
+    orderBy: { ordem: "asc" },
+    select: { data: true },
+  });
+  return imgs.map((i) => i.data);
 }
 
 export async function deletePage(id: string): Promise<ActionResult> {
