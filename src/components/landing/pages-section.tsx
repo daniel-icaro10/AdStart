@@ -32,8 +32,26 @@ const TABS: { value: PageFollowerKind; label: string; icon: typeof Users }[] = [
 export function PageCard({ page }: { page: PagePublic }) {
   const status = page.status as StatusVenda;
   const isVendido = status === "VENDIDO";
+
+  // Mensagem do WhatsApp com os dados da página clicada.
   const whatsappLink = buildWhatsappLink(
-    `Tenho interesse na página "${page.nome}".`,
+    [
+      "Olá! Tenho interesse nesta página 👇",
+      "",
+      `*${page.nome}*`,
+      `• Nicho: ${page.nicho}`,
+      page.kind === "COM"
+        ? `• Seguidores: ${formatInt(page.seguidores ?? 0)}`
+        : "• Sem seguidores",
+      ...(page.valor > 0
+        ? [`• Preço: ${formatCurrency(page.valor, "BRL")}`]
+        : []),
+      ...(page.anoCriacao != null
+        ? [`• Ano de criação: ${page.anoCriacao}`]
+        : []),
+      "",
+      "Pode me passar mais detalhes?",
+    ].join("\n"),
   );
 
   return (

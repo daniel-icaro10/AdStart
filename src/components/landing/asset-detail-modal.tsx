@@ -75,9 +75,30 @@ export function AssetDetailModal({
   const statusVenda = asset.statusVenda as StatusVenda;
   const emoji = getIconeEmoji(asset.icone);
 
-  const whatsappLink = buildWhatsappLink(
-    `Tenho interesse na ${asset.titulo}.`,
-  );
+  // Mensagem do WhatsApp com os dados da BM clicada (o vendedor já sabe qual é).
+  const selos = [
+    asset.verificada && "Verificada",
+    asset.semDividas && "Sem dívidas",
+    asset.semBloqueios && "Sem bloqueios",
+  ].filter(Boolean);
+  const linhas = [
+    "Olá! Tenho interesse nesta BM 👇",
+    "",
+    `*${asset.codigo}${asset.titulo ? ` — ${asset.titulo}` : ""}*`,
+    `• Categoria: ${CATEGORIA_META[categoria].label}`,
+    ...(asset.valor > 0
+      ? [`• Preço: ${formatCurrency(asset.valor, "BRL")}`]
+      : []),
+    ...(asset.qtdContas != null
+      ? [`• Contas de anúncio: ${asset.qtdContas}`]
+      : []),
+    ...(asset.anoCriacao != null ? [`• Ano de criação: ${asset.anoCriacao}`] : []),
+    ...(asset.tier != null ? [`• Tier ${asset.tier}`] : []),
+    ...(selos.length ? [`• ${selos.join(" · ")}`] : []),
+    "",
+    "Pode me passar mais detalhes?",
+  ];
+  const whatsappLink = buildWhatsappLink(linhas.join("\n"));
 
   return (
     <>
