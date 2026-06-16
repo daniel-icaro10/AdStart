@@ -48,13 +48,23 @@ function toDefaults(page?: PageWithImages): PageFormValues {
 
 interface PageFormProps {
   page?: PageWithImages;
+  /** Categoria do item criado nesta aba: "PAGINA" (padrão) ou "PERFIL". */
+  categoria?: "PAGINA" | "PERFIL";
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
+export function PageForm({
+  page,
+  categoria = "PAGINA",
+  onSuccess,
+  onCancel,
+}: PageFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = React.useState<string | null>(null);
+
+  const cat = (page?.categoria as "PAGINA" | "PERFIL") ?? categoria;
+  const termo = cat === "PERFIL" ? "perfil" : "página";
 
   const {
     register,
@@ -65,9 +75,10 @@ export function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
 
   const onSubmit = async (values: PageFormValues) => {
     setServerError(null);
+    const payload = { ...values, categoria: cat };
     const res = page
-      ? await updatePage(page.id, values)
-      : await createPage(values);
+      ? await updatePage(page.id, payload)
+      : await createPage(payload);
     if (!res.ok) {
       setServerError(res.error);
       return;
@@ -75,7 +86,7 @@ export function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
     if (onSuccess) {
       onSuccess();
     } else {
-      router.push("/admin/paginas");
+      router.push("/admin/ativos");
       router.refresh();
     }
   };
@@ -162,12 +173,12 @@ export function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
 
       {/* editor de texto livre */}
       <div className="space-y-1.5">
-        <Label>Conteúdo da página</Label>
+        <Label>Conteúdo {cat === "PERFIL" ? "do perfil" : "da página"}</Label>
         <Textarea
           {...register("conteudo")}
           rows={12}
           placeholder={
-            "Escreva livremente, como no Notion. Ex:\n\nPágina Moda & Estilo (2021)\n48.2K seguidores · nicho moda feminina\n✅ Engajamento alto\n✅ Sem strikes / sem restrições\n\nVALOR 1.2"
+            "Escreva livremente, como no Notion. Ex:\n\nPerfil @marca (2021)\n48.2K seguidores · nicho moda\n✅ Engajamento alto\n✅ Sem strikes / sem restrições\n\nVALOR 1.2"
           }
           className="min-h-[260px] whitespace-pre-wrap font-mono text-[13px] leading-relaxed"
         />
@@ -187,7 +198,7 @@ export function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
           )}
         />
         <p className="text-xs text-muted-foreground">
-          Aparecem apenas no modal de detalhes quando o cliente clica na página.
+          Aparecem apenas no modal de detalhes quando o cliente clica {cat === "PERFIL" ? "no perfil" : "na página"}.
         </p>
       </div>
 
@@ -216,7 +227,7 @@ export function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
           ) : (
             <Save className="h-4 w-4" />
           )}
-          {page ? "Salvar alterações" : "Criar página"}
+          {page ? "Salvar alterações" : `Criar ${termo}`}
         </Button>
       </div>
     </form>

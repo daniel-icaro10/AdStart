@@ -35,8 +35,18 @@ const COLUMNS: { kind: "COM" | "SEM"; label: string; accent: string }[] = [
  * Visão das páginas no estilo Notion: board com colunas por tipo; cada card é
  * clicável e abre um painel de edição (modal). "Nova página" abre o mesmo painel.
  */
-export function PagesManager({ pages }: { pages: PageWithImages[] }) {
+export function PagesManager({
+  pages,
+  categoria = "PAGINA",
+}: {
+  pages: PageWithImages[];
+  categoria?: "PAGINA" | "PERFIL";
+}) {
   const router = useRouter();
+  const ehPerfil = categoria === "PERFIL";
+  const tituloPlural = ehPerfil ? "Perfis" : "Páginas";
+  const rotuloNovo = ehPerfil ? "Novo perfil" : "Nova página";
+  const singular = ehPerfil ? "perfil" : "página";
   const [open, setOpen] = React.useState(false);
   const [current, setCurrent] = React.useState<PageWithImages | undefined>(
     undefined,
@@ -124,14 +134,15 @@ export function PagesManager({ pages }: { pages: PageWithImages[] }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Páginas</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{tituloPlural}</h1>
           <p className="text-sm text-muted-foreground">
-            {pages.length} página(s). Clique em um card para editar.
+            {pages.length} {ehPerfil ? "perfil(is)" : "página(s)"}. Clique em um
+            card para editar.
           </p>
         </div>
         <Button onClick={openNew}>
           <Plus className="h-4 w-4" />
-          Nova página
+          {rotuloNovo}
         </Button>
       </div>
 
@@ -139,12 +150,16 @@ export function PagesManager({ pages }: { pages: PageWithImages[] }) {
         <div className="rounded-xl border border-dashed border-border bg-card/40">
           <EmptyState
             icon={FileText}
-            title="Nenhuma página cadastrada ainda."
+            title={
+              ehPerfil
+                ? "Nenhum perfil cadastrado ainda."
+                : "Nenhuma página cadastrada ainda."
+            }
             className="py-16"
             action={
               <Button onClick={openNew}>
                 <Plus className="h-4 w-4" />
-                Nova página
+                {rotuloNovo}
               </Button>
             }
           />
@@ -165,7 +180,9 @@ export function PagesManager({ pages }: { pages: PageWithImages[] }) {
 
                 {items.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border bg-card/40 p-6 text-center text-xs text-faint">
-                    Nenhuma página nesta coluna.
+                    {ehPerfil
+                      ? "Nenhum perfil nesta coluna."
+                      : "Nenhuma página nesta coluna."}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">{items.map(renderCard)}</div>
@@ -180,12 +197,13 @@ export function PagesManager({ pages }: { pages: PageWithImages[] }) {
         <DialogContent className="admin-theme max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {current ? `Editar · ${current.nome}` : "Nova página"}
+              {current ? `Editar · ${current.nome}` : rotuloNovo}
             </DialogTitle>
           </DialogHeader>
           <PageForm
             key={current?.id ?? "new"}
             page={current}
+            categoria={categoria}
             onSuccess={handleSuccess}
             onCancel={() => setOpen(false)}
           />

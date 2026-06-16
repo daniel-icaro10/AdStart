@@ -93,11 +93,33 @@ export function PageCard({ page }: { page: PagePublic }) {
 }
 
 /**
- * Seção de Páginas exibida ABAIXO do catálogo de BMs.
- * Abas: "Com seguidores" / "Sem seguidores".
+ * Seção de Páginas/Perfis do catálogo.
+ * variant "pagina": abas "Com seguidores" / "Sem seguidores".
+ * variant "perfil": grade simples (sem sub-abas).
  */
-export function PagesSection({ pages }: { pages: PagePublic[] }) {
+export function PagesSection({
+  pages,
+  variant = "pagina",
+}: {
+  pages: PagePublic[];
+  variant?: "pagina" | "perfil";
+}) {
   const [tab, setTab] = React.useState<PageFollowerKind>("COM");
+
+  if (variant === "perfil") {
+    return pages.length === 0 ? (
+      <div className="rounded-xl border border-dashed border-border bg-card/50 p-12 text-center text-muted-foreground">
+        Nenhum perfil disponível no momento.
+      </div>
+    ) : (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {pages.map((page) => (
+          <PageCard key={page.id} page={page} />
+        ))}
+      </div>
+    );
+  }
+
   const items = pages.filter((p) => p.kind === tab);
 
   return (

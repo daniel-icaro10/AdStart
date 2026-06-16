@@ -57,9 +57,10 @@ export const assetSchema = z.object({
 
 export type AssetInput = z.infer<typeof assetSchema>;
 
-// Editor de Página em texto livre + imagens (igual à BM).
+// Editor de Página/Perfil em texto livre + imagens (igual à BM).
 export const pageSchema = z.object({
   nome: z.string().trim().min(1, "Informe o nome").max(120),
+  categoria: z.enum(["PAGINA", "PERFIL"]).default("PAGINA"),
   kind: z.enum(["COM", "SEM"]),
   status: statusVendaEnum,
   valor: z.coerce.number().min(0, "Valor inválido"),
@@ -125,3 +126,14 @@ export const clientSchema = z.object({
 });
 
 export type ClientInput = z.infer<typeof clientSchema>;
+
+/** Linha da planilha do cliente (edição). */
+export const clientEntrySchema = z.object({
+  id: z.string().min(1),
+  data: dataVencimentoOpcional,
+  descricao: z.string().trim().max(300).optional().default(""),
+  valor: valorOpcional,
+  status: z.string().trim().max(40).optional().default(""),
+});
+
+export type ClientEntryInput = z.infer<typeof clientEntrySchema>;

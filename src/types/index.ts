@@ -37,6 +37,7 @@ export type PagePublic = Prisma.PageGetPayload<{
   select: {
     id: true;
     nome: true;
+    categoria: true;
     kind: true;
     status: true;
     valor: true;
@@ -55,9 +56,9 @@ export type PageWithImages = Prisma.PageGetPayload<{
   include: { imagens: true };
 }> & { imagens: PageImage[] };
 
-/** Cliente com o plano vinculado — usado no CRM de aluguéis (admin). */
+/** Cliente com plano vinculado + linhas da planilha — CRM de aluguéis (admin). */
 export type ClientWithPlan = Prisma.ClientGetPayload<{
-  include: { plan: true };
+  include: { plan: true; entries: true };
 }>;
 
 /** Estatísticas agregadas exibidas na StatBar da landing. */

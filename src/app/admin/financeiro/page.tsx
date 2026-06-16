@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { FinanceiroNav } from "@/components/admin/financeiro/financeiro-nav";
 import { PeriodSelector } from "@/components/admin/financeiro/period-selector";
 import { MetricsCards } from "@/components/admin/financeiro/metrics-cards";
+import { FaturamentoPorGrupo } from "@/components/admin/financeiro/faturamento-por-grupo";
 import { FinanceiroCharts } from "@/components/admin/financeiro/financeiro-charts";
 import {
   resolverPeriodo,
@@ -66,6 +67,7 @@ export default async function FinanceiroPage({
         fim={searchParams.fim}
       />
       <MetricsCards m={metricas} />
+      <FaturamentoPorGrupo m={metricas} />
       <FinanceiroCharts serie={serie} m={metricas} />
     </div>
   );

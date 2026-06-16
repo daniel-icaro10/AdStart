@@ -7,7 +7,7 @@ import type { ClientWithPlan } from "@/types";
  */
 export function getAdminClients(): Promise<ClientWithPlan[]> {
   return prisma.client.findMany({
-    include: { plan: true },
+    include: { plan: true, entries: { orderBy: { ordem: "asc" } } },
     orderBy: [{ dataVencimento: "asc" }, { createdAt: "desc" }],
   });
 }
@@ -15,6 +15,6 @@ export function getAdminClients(): Promise<ClientWithPlan[]> {
 export function getClientById(id: string) {
   return prisma.client.findUnique({
     where: { id },
-    include: { plan: true },
+    include: { plan: true, entries: { orderBy: { ordem: "asc" } } },
   });
 }
