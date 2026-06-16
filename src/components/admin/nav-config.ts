@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Boxes,
   FileText,
+  KeyRound,
   ListOrdered,
   Wallet,
 } from "lucide-react";
@@ -30,6 +31,7 @@ export const adminNav: AdminNavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Ativos", href: "/admin/ativos", icon: Boxes },
   { label: "Páginas", href: "/admin/paginas", icon: FileText },
+  { label: "Aluguéis", href: "/admin/alugueis", icon: KeyRound },
   { label: "Categorias", href: "/admin/categorias", icon: ListOrdered },
   { label: "Financeiro", href: "/admin/financeiro", icon: Wallet },
 ];

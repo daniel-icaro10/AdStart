@@ -230,10 +230,69 @@ async function seedPages() {
   console.log("[seed] 5 páginas de exemplo criadas.");
 }
 
+async function seedRentalPlans() {
+  // Idempotente: upsert por slug — ajusta valores/quotas sem duplicar.
+  const planos = [
+    {
+      nome: "Plano A",
+      slug: "plano-a",
+      precoMensalUSD: 500,
+      contasAtivas: 1,
+      reposicoesIlimitadas: true,
+      paginasAntigas2021: false,
+      paginasAntigas2021Ilimitadas: false,
+      perfisVerificados: 0,
+      beneficios: "",
+      destaque: false,
+      ordem: 1,
+      ativo: true,
+    },
+    {
+      nome: "Plano B",
+      slug: "plano-b",
+      precoMensalUSD: 1100,
+      contasAtivas: 2,
+      reposicoesIlimitadas: true,
+      paginasAntigas2021: true,
+      paginasAntigas2021Ilimitadas: true,
+      perfisVerificados: 2,
+      beneficios: "",
+      destaque: true, // "mais popular"
+      ordem: 2,
+      ativo: true,
+    },
+    {
+      nome: "Plano C",
+      slug: "plano-c",
+      precoMensalUSD: 2000,
+      contasAtivas: 5,
+      reposicoesIlimitadas: true,
+      paginasAntigas2021: true,
+      paginasAntigas2021Ilimitadas: true,
+      perfisVerificados: 5,
+      beneficios: "",
+      destaque: false,
+      ordem: 3,
+      ativo: true,
+    },
+  ];
+
+  for (const p of planos) {
+    await prisma.rentalPlan.upsert({
+      where: { slug: p.slug },
+      update: p,
+      create: p,
+    });
+  }
+
+  console.log(`[seed] ${planos.length} planos de aluguel prontos (upsert).`);
+}
+
 async function main() {
   await seedAdmin();
   await seedAssets();
   await seedPages();
+  await seedRentalPlans();
 }
 
 main()

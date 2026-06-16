@@ -70,3 +70,25 @@ export const pageSchema = z.object({
 });
 
 export type PageInput = z.infer<typeof pageSchema>;
+
+// ---------------------------------------------------------------------------
+// Plano de aluguel (contas de agência)
+// ---------------------------------------------------------------------------
+
+export const rentalPlanSchema = z.object({
+  nome: z.string().trim().min(1, "Informe o nome").max(120),
+  // slug opcional: vazio → derivado do nome na server action.
+  slug: z.string().trim().max(140).optional().default(""),
+  precoMensalUSD: z.coerce.number().min(0, "Preço inválido"),
+  contasAtivas: z.coerce.number().int().min(0).default(0),
+  reposicoesIlimitadas: z.boolean().default(false),
+  paginasAntigas2021: z.boolean().default(false),
+  paginasAntigas2021Ilimitadas: z.boolean().default(false),
+  perfisVerificados: z.coerce.number().int().min(0).default(0),
+  beneficios: z.string().max(2000).optional().default(""),
+  destaque: z.boolean().default(false),
+  ordem: z.coerce.number().int().default(0),
+  ativo: z.boolean().default(true),
+});
+
+export type RentalPlanInput = z.infer<typeof rentalPlanSchema>;

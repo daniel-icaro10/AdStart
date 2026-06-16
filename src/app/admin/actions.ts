@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { assetSchema, pageSchema } from "@/lib/validation";
+import { assetSchema, pageSchema, rentalPlanSchema } from "@/lib/validation";
 import { CATEGORIA_ORDER } from "@/lib/constants";
 import { CATEGORY_ORDER_KEY } from "@/lib/settings";
 
@@ -214,5 +214,105 @@ export async function deletePage(id: string): Promise<ActionResult> {
   await requireAdmin();
   await prisma.page.delete({ where: { id } });
   revalidatePages();
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Aluguéis (planos de aluguel de contas de agência)
+// ---------------------------------------------------------------------------
+
+function revalidateRentals() {
+  revalidatePath("/");
+  revalidatePath("/admin/alugueis");
+}
+
+/** Normaliza um texto em slug url-safe. */
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 140);
+}
+
+/** Gera um slug único (acrescenta -2, -3… em caso de colisão). */
+async function uniqueRentalSlug(base: string, exceptId?: string): Promise<string> {
+  const root = slugify(base) || "plano";
+  let slug = root;
+  let n = 2;
+  // Loop curto: o volume de planos é baixo.
+  for (;;) {
+    const found = await prisma.rentalPlan.findUnique({ where: { slug } });
+    if (!found || found.id === exceptId) return slug;
+    slug = `${root}-${n++}`;
+  }
+}
+
+export async function createRentalPlan(input: unknown): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = rentalPlanSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+  const d = parsed.data;
+  const slug = await uniqueRentalSlug(d.slug || d.nome);
+  const plan = await prisma.rentalPlan.create({
+    data: {
+      nome: d.nome,
+      slug,
+      precoMensalUSD: d.precoMensalUSD,
+      contasAtivas: d.contasAtivas,
+      reposicoesIlimitadas: d.reposicoesIlimitadas,
+      paginasAntigas2021: d.paginasAntigas2021,
+      paginasAntigas2021Ilimitadas: d.paginasAntigas2021Ilimitadas,
+      perfisVerificados: d.perfisVerificados,
+      beneficios: d.beneficios || null,
+      destaque: d.destaque,
+      ordem: d.ordem,
+      ativo: d.ativo,
+    },
+  });
+  revalidateRentals();
+  return { ok: true, id: plan.id };
+}
+
+export async function updateRentalPlan(
+  id: string,
+  input: unknown,
+): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = rentalPlanSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+  const d = parsed.data;
+  const slug = await uniqueRentalSlug(d.slug || d.nome, id);
+  await prisma.rentalPlan.update({
+    where: { id },
+    data: {
+      nome: d.nome,
+      slug,
+      precoMensalUSD: d.precoMensalUSD,
+      contasAtivas: d.contasAtivas,
+      reposicoesIlimitadas: d.reposicoesIlimitadas,
+      paginasAntigas2021: d.paginasAntigas2021,
+      paginasAntigas2021Ilimitadas: d.paginasAntigas2021Ilimitadas,
+      perfisVerificados: d.perfisVerificados,
+      beneficios: d.beneficios || null,
+      destaque: d.destaque,
+      ordem: d.ordem,
+      ativo: d.ativo,
+    },
+  });
+  revalidateRentals();
+  return { ok: true, id };
+}
+
+export async function deleteRentalPlan(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  await prisma.rentalPlan.delete({ where: { id } });
+  revalidateRentals();
   return { ok: true };
 }
