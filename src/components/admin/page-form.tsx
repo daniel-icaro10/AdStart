@@ -8,6 +8,7 @@ import { Loader2, Save, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -16,38 +17,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageUploader } from "@/components/admin/image-uploader";
 import { STATUS_VENDA_META, type StatusVenda } from "@/lib/constants";
 import { createPage, updatePage } from "@/app/admin/actions";
-import type { Page } from "@prisma/client";
+import type { PageWithImages } from "@/types";
 
 interface PageFormValues {
   nome: string;
-  nicho: string;
   kind: "COM" | "SEM";
-  seguidores: string;
-  anoCriacao: string;
   status: StatusVenda;
   valor: string;
   destaque: boolean;
+  conteudo: string;
+  imagens: string[];
 }
 
 const s = (v: number | null | undefined) => (v == null ? "" : String(v));
 
-function toDefaults(page?: Page): PageFormValues {
+function toDefaults(page?: PageWithImages): PageFormValues {
   return {
     nome: page?.nome ?? "",
-    nicho: page?.nicho ?? "",
     kind: (page?.kind as "COM" | "SEM") ?? "COM",
-    seguidores: s(page?.seguidores),
-    anoCriacao: s(page?.anoCriacao),
     status: (page?.status as StatusVenda) ?? "DISPONIVEL",
     valor: s(page?.valor),
     destaque: page?.destaque ?? false,
+    conteudo: page?.conteudo ?? "",
+    imagens: page?.imagens?.map((i) => i.data) ?? [],
   };
 }
 
 interface PageFormProps {
-  page?: Page;
+  page?: PageWithImages;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -81,7 +81,7 @@ export function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {serverError && (
         <div
           role="alert"
@@ -92,79 +92,117 @@ export function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
         </div>
       )}
 
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Nome" error={errors.nome?.message}>
-            <Input placeholder="Página Moda & Estilo" {...register("nome", { required: "Informe o nome" })} />
-          </Field>
-          <Field label="Nicho" error={errors.nicho?.message}>
-            <Input placeholder="Moda feminina" {...register("nicho", { required: "Informe o nicho" })} />
-          </Field>
+      {/* linha 1: nome */}
+      <div className="space-y-1.5">
+        <Label>Nome</Label>
+        <Input
+          placeholder="Ex: Página Moda & Estilo"
+          {...register("nome", { required: "Informe o nome" })}
+        />
+        {errors.nome && (
+          <p className="text-xs text-destructive">{errors.nome.message}</p>
+        )}
+      </div>
 
-          <Field label="Tipo">
-            <Controller
-              control={control}
-              name="kind"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="COM">Com seguidores</SelectItem>
-                    <SelectItem value="SEM">Sem seguidores</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-          <Field label="Seguidores">
-            <Input type="number" placeholder="48200" {...register("seguidores")} />
-          </Field>
-
-          <Field label="Ano de criação">
-            <Input type="number" placeholder="2021" {...register("anoCriacao")} />
-          </Field>
-          <Field label="Status da venda">
-            <Controller
-              control={control}
-              name="status"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(STATUS_VENDA_META) as StatusVenda[]).map((st) => (
-                      <SelectItem key={st} value={st}>
-                        {STATUS_VENDA_META[st].label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <Field label="Valor (R$)" error={errors.valor?.message}>
-            <Input type="number" step="0.01" placeholder="1200" {...register("valor", { required: "Informe o valor" })} />
-          </Field>
-          <div className="flex items-end">
-            <Controller
-              control={control}
-              name="destaque"
-              render={({ field }) => (
-                <label className="flex cursor-pointer items-center gap-2 text-sm">
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  Destaque (tag &quot;Nova&quot;)
-                </label>
-              )}
-            />
-          </div>
+      {/* linha 2: tipo + status + preço */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="space-y-1.5">
+          <Label>Tipo</Label>
+          <Controller
+            control={control}
+            name="kind"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="COM">Com seguidores</SelectItem>
+                  <SelectItem value="SEM">Sem seguidores</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Status</Label>
+          <Controller
+            control={control}
+            name="status"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(STATUS_VENDA_META) as StatusVenda[]).map((st) => (
+                    <SelectItem key={st} value={st}>
+                      {STATUS_VENDA_META[st].label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Valor (R$)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="Ex: 1200"
+            {...register("valor", { required: "Informe o valor" })}
+          />
+          {errors.valor && (
+            <p className="text-xs text-destructive">{errors.valor.message}</p>
+          )}
         </div>
       </div>
 
-      <div className="flex justify-end gap-2">
+      {/* editor de texto livre */}
+      <div className="space-y-1.5">
+        <Label>Conteúdo da página</Label>
+        <Textarea
+          {...register("conteudo")}
+          rows={12}
+          placeholder={
+            "Escreva livremente, como no Notion. Ex:\n\nPágina Moda & Estilo (2021)\n48.2K seguidores · nicho moda feminina\n✅ Engajamento alto\n✅ Sem strikes / sem restrições\n\nVALOR 1.2"
+          }
+          className="min-h-[260px] whitespace-pre-wrap font-mono text-[13px] leading-relaxed"
+        />
+        <p className="text-xs text-muted-foreground">
+          As quebras de linha são preservadas exatamente como você digitar.
+        </p>
+      </div>
+
+      {/* imagens (até 3) — só aparecem no modal de detalhes */}
+      <div className="space-y-1.5">
+        <Label>Imagens (até 3)</Label>
+        <Controller
+          control={control}
+          name="imagens"
+          render={({ field }) => (
+            <ImageUploader value={field.value} onChange={field.onChange} />
+          )}
+        />
+        <p className="text-xs text-muted-foreground">
+          Aparecem apenas no modal de detalhes quando o cliente clica na página.
+        </p>
+      </div>
+
+      <Controller
+        control={control}
+        name="destaque"
+        render={({ field }) => (
+          <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
+            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+            Destaque (tag &quot;Nova&quot;)
+          </label>
+        )}
+      />
+
+      <div className="flex justify-end gap-2 pt-2">
         <Button
           type="button"
           variant="outline"
@@ -173,28 +211,14 @@ export function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
           Cancelar
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {isSubmitting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
           {page ? "Salvar alterações" : "Criar página"}
         </Button>
       </div>
     </form>
-  );
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label>{label}</Label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
   );
 }

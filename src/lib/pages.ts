@@ -7,13 +7,11 @@ import type { PagePublic } from "@/types";
 const PUBLIC_PAGE_SELECT = {
   id: true,
   nome: true,
-  nicho: true,
   kind: true,
-  seguidores: true,
-  anoCriacao: true,
   status: true,
   valor: true,
   destaque: true,
+  conteudo: true,
 } as const satisfies Prisma.PageSelect;
 
 /**
@@ -38,11 +36,17 @@ export function getVendidosPages(): Promise<PagePublic[]> {
   });
 }
 
-/** Todas as páginas para a área admin. */
+/** Todas as páginas para a área admin (com imagens, para edição). */
 export function getAdminPages() {
-  return prisma.page.findMany({ orderBy: { createdAt: "desc" } });
+  return prisma.page.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { imagens: { orderBy: { ordem: "asc" } } },
+  });
 }
 
 export function getPageById(id: string) {
-  return prisma.page.findUnique({ where: { id } });
+  return prisma.page.findUnique({
+    where: { id },
+    include: { imagens: { orderBy: { ordem: "asc" } } },
+  });
 }

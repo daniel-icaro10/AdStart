@@ -31,12 +31,6 @@ const categoriaEnum = z.enum([
 ]);
 const statusVendaEnum = z.enum(["DISPONIVEL", "RESERVADO", "VENDIDO"]);
 
-// Campo inteiro opcional: aceita "" (vazio) → null, ou inteiro >= 0.
-const optionalInt = z
-  .union([z.coerce.number().int().min(0), z.literal(""), z.null(), z.undefined()])
-  .transform((v) => (v === "" || v === undefined ? null : v))
-  .nullable();
-
 // Editor de BM em texto livre + ícone (estilo Notion).
 export const assetSchema = z.object({
   titulo: z.string().trim().min(1, "Informe o título").max(120),
@@ -63,15 +57,16 @@ export const assetSchema = z.object({
 
 export type AssetInput = z.infer<typeof assetSchema>;
 
+// Editor de Página em texto livre + imagens (igual à BM).
 export const pageSchema = z.object({
   nome: z.string().trim().min(1, "Informe o nome").max(120),
-  nicho: z.string().trim().min(1, "Informe o nicho").max(80),
   kind: z.enum(["COM", "SEM"]),
-  seguidores: z.coerce.number().int().min(0).default(0),
-  anoCriacao: optionalInt,
   status: statusVendaEnum,
   valor: z.coerce.number().min(0, "Valor inválido"),
   destaque: z.boolean().default(false),
+  conteudo: z.string().max(8000).optional().default(""),
+  // imagens: data URLs (base64), no máximo 3.
+  imagens: z.array(z.string()).max(3).optional().default([]),
 });
 
 export type PageInput = z.infer<typeof pageSchema>;
