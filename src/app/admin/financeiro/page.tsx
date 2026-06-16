@@ -9,7 +9,6 @@ import {
   resolverPeriodo,
   getMetricasFinanceiras,
   getSerieMensal,
-  getTaxaAtual,
 } from "@/lib/financeiro";
 
 export const dynamic = "force-dynamic";
@@ -25,10 +24,9 @@ export default async function FinanceiroPage({
     searchParams.fim,
   );
 
-  const [metricas, serie, taxa] = await Promise.all([
+  const [metricas, serie] = await Promise.all([
     getMetricasFinanceiras(periodo),
     getSerieMensal(6),
-    getTaxaAtual(),
   ]);
 
   return (
@@ -58,12 +56,6 @@ export default async function FinanceiroPage({
               Exportar CSV
             </a>
           </Button>
-          <span className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground">
-            Câmbio USD→BRL:{" "}
-            <strong className="text-foreground">
-              {taxa.toFixed(2).replace(".", ",")}
-            </strong>
-          </span>
         </div>
       </div>
 

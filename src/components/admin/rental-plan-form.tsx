@@ -16,7 +16,7 @@ import type { RentalPlan } from "@prisma/client";
 interface RentalPlanFormValues {
   nome: string;
   slug: string;
-  precoMensalUSD: string;
+  precoMensal: string;
   contasAtivas: string;
   perfisVerificados: string;
   ordem: string;
@@ -34,7 +34,7 @@ function toDefaults(plan?: RentalPlan): RentalPlanFormValues {
   return {
     nome: plan?.nome ?? "",
     slug: plan?.slug ?? "",
-    precoMensalUSD: s(plan?.precoMensalUSD),
+    precoMensal: s(plan?.precoMensal),
     contasAtivas: s(plan?.contasAtivas ?? 0),
     perfisVerificados: s(plan?.perfisVerificados ?? 0),
     ordem: s(plan?.ordem ?? 0),
@@ -143,17 +143,17 @@ export function RentalPlanForm({ plan, onSuccess, onCancel }: RentalPlanFormProp
       {/* preço + quotas numéricas */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-1.5">
-          <Label>Preço mensal (US$)</Label>
+          <Label>Preço mensal (R$)</Label>
           <Input
             type="number"
             step="0.01"
             min="0"
-            placeholder="Ex: 500"
-            {...register("precoMensalUSD", { required: "Informe o preço" })}
+            placeholder="Ex: 2750"
+            {...register("precoMensal", { required: "Informe o preço" })}
           />
-          {errors.precoMensalUSD && (
+          {errors.precoMensal && (
             <p className="text-xs text-destructive">
-              {errors.precoMensalUSD.message}
+              {errors.precoMensal.message}
             </p>
           )}
         </div>

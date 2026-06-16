@@ -94,7 +94,7 @@ export function RentalsManager({ plans }: { plans: RentalPlan[] }) {
 
         <div className="mt-1 flex items-baseline gap-1">
           <span className="text-2xl font-bold tabular-nums">
-            {formatCurrency(p.precoMensalUSD, "USD")}
+            {formatCurrency(p.precoMensal, "BRL")}
           </span>
           <span className="text-xs text-muted-foreground">/mês</span>
         </div>

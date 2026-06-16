@@ -79,7 +79,7 @@ export const rentalPlanSchema = z.object({
   nome: z.string().trim().min(1, "Informe o nome").max(120),
   // slug opcional: vazio → derivado do nome na server action.
   slug: z.string().trim().max(140).optional().default(""),
-  precoMensalUSD: z.coerce.number().min(0, "Preço inválido"),
+  precoMensal: z.coerce.number().min(0, "Preço inválido"),
   contasAtivas: z.coerce.number().int().min(0).default(0),
   reposicoesIlimitadas: z.boolean().default(false),
   paginasAntigas2021: z.boolean().default(false),
@@ -92,3 +92,36 @@ export const rentalPlanSchema = z.object({
 });
 
 export type RentalPlanInput = z.infer<typeof rentalPlanSchema>;
+
+// ---------------------------------------------------------------------------
+// Clientes (CRM de aluguéis)
+// ---------------------------------------------------------------------------
+
+// Valor opcional em R$: "" → null, número >= 0.
+const valorOpcional = z
+  .union([z.coerce.number().min(0), z.literal(""), z.null(), z.undefined()])
+  .transform((v) => (v === "" || v == null ? null : v))
+  .nullable();
+
+// Data opcional (YYYY-MM-DD ou ISO) → Date | null.
+const dataVencimentoOpcional = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (!v) return null;
+    const d = new Date(v.length === 10 ? `${v}T12:00:00.000Z` : v);
+    return isNaN(d.getTime()) ? null : d;
+  })
+  .nullable();
+
+export const clientSchema = z.object({
+  nome: z.string().trim().min(1, "Informe o nome").max(120),
+  contato: z.string().trim().max(160).optional().default(""),
+  // planId vazio → sem vínculo (tratado como null na action).
+  planId: z.string().trim().optional().default(""),
+  valorMensal: valorOpcional,
+  dataVencimento: dataVencimentoOpcional,
+  status: z.enum(["ATIVO", "PAUSADO", "CANCELADO"]).default("ATIVO"),
+  observacoes: z.string().trim().max(2000).optional().default(""),
+});
+
+export type ClientInput = z.infer<typeof clientSchema>;

@@ -18,7 +18,7 @@ function RentalCard({ plan }: { plan: RentalPlan }) {
     [
       `Olá! Tenho interesse no *${plan.nome}* (Aluguel de Contas de Agência).`,
       "",
-      `• ${formatCurrency(plan.precoMensalUSD, "USD")}/mês`,
+      `• ${formatCurrency(plan.precoMensal, "BRL")}/mês`,
       ...beneficios.map((b) => `• ${b}`),
       "",
       "Pode me passar mais detalhes?",
@@ -45,7 +45,7 @@ function RentalCard({ plan }: { plan: RentalPlan }) {
 
       <div className="mt-2 flex items-baseline gap-1.5">
         <span className="text-4xl font-bold tabular-nums text-brand">
-          {formatCurrency(plan.precoMensalUSD, "USD")}
+          {formatCurrency(plan.precoMensal, "BRL")}
         </span>
         <span className="text-sm text-muted-foreground">/mês</span>
       </div>

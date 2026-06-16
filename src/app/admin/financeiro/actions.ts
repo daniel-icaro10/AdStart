@@ -5,13 +5,11 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getTaxaAtual, upsertTaxaCambio } from "@/lib/financeiro";
 import {
   venderSchema,
   perderSchema,
   ativoFinanceiroSchema,
   reverterStatusSchema,
-  taxaCambioSchema,
 } from "@/lib/financeiro-validation";
 
 export type FinanceiroResult = { ok: true } | { ok: false; error: string };
@@ -169,24 +167,20 @@ async function updateAtivo(
   }
 }
 
-/** Lê status atual + moedaCusto + taxaCambioNaDia do ativo. */
+/** Lê o status atual do ativo (Asset ou Page). */
 async function getEstadoAtivo(origem: "asset" | "page", id: string) {
   if (origem === "asset") {
     const r = await prisma.asset.findUnique({
       where: { id },
-      select: { statusVenda: true, moedaCusto: true, taxaCambioNaDia: true },
+      select: { statusVenda: true },
     });
-    return r
-      ? { status: r.statusVenda, moedaCusto: r.moedaCusto, taxaCambioNaDia: r.taxaCambioNaDia }
-      : null;
+    return r ? { status: r.statusVenda } : null;
   }
   const r = await prisma.page.findUnique({
     where: { id },
-    select: { status: true, moedaCusto: true, taxaCambioNaDia: true },
+    select: { status: true },
   });
-  return r
-    ? { status: r.status, moedaCusto: r.moedaCusto, taxaCambioNaDia: r.taxaCambioNaDia }
-    : null;
+  return r ? { status: r.status } : null;
 }
 
 /**
@@ -219,8 +213,7 @@ const EM_ESTOQUE = ["DISPONIVEL", "RESERVADO"];
 
 /**
  * Marca o ativo como VENDIDO. precoVenda é obrigatório (validado no schema).
- * dataSaida default = agora. Congela a taxa de câmbio se o custo é em USD e
- * ainda não havia taxa registrada (histórico fiel).
+ * dataSaida default = agora. Tudo em R$ (sem USD).
  */
 export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
   await requireAdmin();
@@ -228,18 +221,11 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
-  const { origem, id, precoVenda, moedaVenda, comprador, dataSaida, observacoes } =
+  const { origem, id, precoVenda, comprador, dataSaida, observacoes } =
     parsed.data;
 
   const estado = await getEstadoAtivo(origem, id);
   if (!estado) return { ok: false, error: "Ativo não encontrado." };
-
-  const taxaSnapshot =
-    estado.moedaCusto === "USD" && estado.taxaCambioNaDia == null
-      ? await getTaxaAtual()
-      : undefined;
-  // Congela a taxa da VENDA quando a venda é em dólar (histórico fiel).
-  const taxaVenda = moedaVenda === "USD" ? await getTaxaAtual() : null;
 
   // Guarda atômica: só vende se ainda estiver em estoque (não sobrescreve venda/perda).
   const count = await updateAtivoGuarded(
@@ -248,12 +234,11 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
     EM_ESTOQUE,
     {
       precoVenda,
-      moedaVenda,
-      taxaVendaNaDia: taxaVenda,
+      moedaVenda: "BRL",
+      taxaVendaNaDia: null,
       comprador: comprador || null,
       dataSaida: dataSaida ?? new Date(),
       ...(observacoes ? { observacoes } : {}),
-      ...(taxaSnapshot != null ? { taxaCambioNaDia: taxaSnapshot } : {}),
     },
     "VENDIDO",
   );
@@ -279,11 +264,6 @@ export async function marcarPerdido(input: unknown): Promise<FinanceiroResult> {
   const estado = await getEstadoAtivo(origem, id);
   if (!estado) return { ok: false, error: "Ativo não encontrado." };
 
-  const taxaSnapshot =
-    estado.moedaCusto === "USD" && estado.taxaCambioNaDia == null
-      ? await getTaxaAtual()
-      : undefined;
-
   // Guarda atômica: só marca perdido se ainda estiver em estoque.
   const count = await updateAtivoGuarded(
     origem,
@@ -292,7 +272,6 @@ export async function marcarPerdido(input: unknown): Promise<FinanceiroResult> {
     {
       motivoPerda,
       dataSaida: dataSaida ?? new Date(),
-      ...(taxaSnapshot != null ? { taxaCambioNaDia: taxaSnapshot } : {}),
     },
     "PERDIDO",
   );
@@ -335,21 +314,9 @@ export async function reverterStatus(input: unknown): Promise<FinanceiroResult> 
   return { ok: true };
 }
 
-/** Atualiza a taxa de câmbio USD→BRL usada na consolidação dos relatórios. */
-export async function salvarTaxaCambio(input: unknown): Promise<FinanceiroResult> {
-  await requireAdmin();
-  const parsed = taxaCambioSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Taxa inválida." };
-  }
-  await upsertTaxaCambio(parsed.data.taxa);
-  revalidate();
-  return { ok: true };
-}
-
 /**
  * Entrada/edição dos dados financeiros de um ativo (custo, fornecedor,
- * previsão de venda, data de entrada, tipo). Não altera o status de venda.
+ * previsão de venda, data de entrada, tipo). Tudo em R$. Não altera o status.
  */
 export async function salvarFinanceiroAtivo(
   input: unknown,
@@ -365,26 +332,19 @@ export async function salvarFinanceiroAtivo(
     tipo,
     fornecedor,
     custoAquisicao,
-    moedaCusto,
     dataEntrada,
     precoPrevisto,
-    taxaCambioNaDia,
     observacoes,
   } = parsed.data;
-
-  // Congela a taxa do dia se custo em USD e não informada explicitamente.
-  const taxaFinal =
-    taxaCambioNaDia ??
-    (moedaCusto === "USD" ? await getTaxaAtual() : null);
 
   await updateAtivo(origem, id, {
     tipo: tipo ?? null,
     fornecedor: fornecedor || null,
     custoAquisicao,
-    moedaCusto: moedaCusto ?? null,
+    moedaCusto: "BRL",
     dataEntrada: dataEntrada ?? undefined,
     precoPrevisto,
-    taxaCambioNaDia: taxaFinal,
+    taxaCambioNaDia: null,
     observacoes: observacoes || null,
   });
   revalidate();

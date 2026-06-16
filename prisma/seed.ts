@@ -236,7 +236,7 @@ async function seedRentalPlans() {
     {
       nome: "Plano A",
       slug: "plano-a",
-      precoMensalUSD: 500,
+      precoMensal: 2750,
       contasAtivas: 1,
       reposicoesIlimitadas: true,
       paginasAntigas2021: false,
@@ -250,7 +250,7 @@ async function seedRentalPlans() {
     {
       nome: "Plano B",
       slug: "plano-b",
-      precoMensalUSD: 1100,
+      precoMensal: 6050,
       contasAtivas: 2,
       reposicoesIlimitadas: true,
       paginasAntigas2021: true,
@@ -264,7 +264,7 @@ async function seedRentalPlans() {
     {
       nome: "Plano C",
       slug: "plano-c",
-      precoMensalUSD: 2000,
+      precoMensal: 11000,
       contasAtivas: 5,
       reposicoesIlimitadas: true,
       paginasAntigas2021: true,

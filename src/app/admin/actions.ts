@@ -5,7 +5,12 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { assetSchema, pageSchema, rentalPlanSchema } from "@/lib/validation";
+import {
+  assetSchema,
+  pageSchema,
+  rentalPlanSchema,
+  clientSchema,
+} from "@/lib/validation";
 import { CATEGORIA_ORDER } from "@/lib/constants";
 import { CATEGORY_ORDER_KEY } from "@/lib/settings";
 
@@ -262,7 +267,7 @@ export async function createRentalPlan(input: unknown): Promise<ActionResult> {
     data: {
       nome: d.nome,
       slug,
-      precoMensalUSD: d.precoMensalUSD,
+      precoMensal: d.precoMensal,
       contasAtivas: d.contasAtivas,
       reposicoesIlimitadas: d.reposicoesIlimitadas,
       paginasAntigas2021: d.paginasAntigas2021,
@@ -294,7 +299,7 @@ export async function updateRentalPlan(
     data: {
       nome: d.nome,
       slug,
-      precoMensalUSD: d.precoMensalUSD,
+      precoMensal: d.precoMensal,
       contasAtivas: d.contasAtivas,
       reposicoesIlimitadas: d.reposicoesIlimitadas,
       paginasAntigas2021: d.paginasAntigas2021,
@@ -314,5 +319,68 @@ export async function deleteRentalPlan(id: string): Promise<ActionResult> {
   await requireAdmin();
   await prisma.rentalPlan.delete({ where: { id } });
   revalidateRentals();
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Clientes (CRM de aluguéis)
+// ---------------------------------------------------------------------------
+
+function revalidateClients() {
+  revalidatePath("/admin/clientes");
+}
+
+export async function createClient(input: unknown): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = clientSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+  const d = parsed.data;
+  const client = await prisma.client.create({
+    data: {
+      nome: d.nome,
+      contato: d.contato || null,
+      planId: d.planId || null,
+      valorMensal: d.valorMensal,
+      dataVencimento: d.dataVencimento,
+      status: d.status,
+      observacoes: d.observacoes || null,
+    },
+  });
+  revalidateClients();
+  return { ok: true, id: client.id };
+}
+
+export async function updateClient(
+  id: string,
+  input: unknown,
+): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = clientSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+  const d = parsed.data;
+  await prisma.client.update({
+    where: { id },
+    data: {
+      nome: d.nome,
+      contato: d.contato || null,
+      planId: d.planId || null,
+      valorMensal: d.valorMensal,
+      dataVencimento: d.dataVencimento,
+      status: d.status,
+      observacoes: d.observacoes || null,
+    },
+  });
+  revalidateClients();
+  return { ok: true, id };
+}
+
+export async function deleteClient(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  await prisma.client.delete({ where: { id } });
+  revalidateClients();
   return { ok: true };
 }

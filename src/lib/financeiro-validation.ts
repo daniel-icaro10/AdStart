@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 /** Schemas Zod do módulo financeiro — usados nas Server Actions (validação backend). */
-
-export const moedaEnum = z.enum(["BRL", "USD"]);
+/** Tudo é registrado em R$ (BRL) — o sistema não usa mais USD no financeiro. */
 
 export const tipoAtivoEnum = z.enum([
   "BM",
@@ -41,22 +40,19 @@ export const ativoRefSchema = z.object({
   id: z.string().min(1),
 });
 
-/** Edição dos campos financeiros de um ativo (entrada rápida no estoque). */
+/** Edição dos campos financeiros de um ativo (entrada rápida no estoque). Tudo em R$. */
 export const ativoFinanceiroSchema = ativoRefSchema.extend({
   tipo: tipoAtivoEnum.nullable().optional(),
   fornecedor: z.string().trim().max(120).optional().default(""),
   custoAquisicao: dinheiroOpcional,
-  moedaCusto: moedaEnum.nullable().optional(),
   dataEntrada: dataOpcional,
   precoPrevisto: dinheiroOpcional,
-  taxaCambioNaDia: dinheiroOpcional,
   observacoes: z.string().trim().max(2000).optional().default(""),
 });
 
-/** Marcar como vendido: precoVenda OBRIGATÓRIO; moeda da venda obrigatória. */
+/** Marcar como vendido: precoVenda OBRIGATÓRIO (em R$). */
 export const venderSchema = ativoRefSchema.extend({
   precoVenda: z.coerce.number().min(0, "Informe o preço de venda"),
-  moedaVenda: moedaEnum,
   comprador: z.string().trim().max(160).optional().default(""),
   dataSaida: dataOpcional,
   observacoes: z.string().trim().max(2000).optional().default(""),
@@ -74,24 +70,17 @@ export const reverterStatusSchema = ativoRefSchema.extend({
   confirmar: z.literal(true),
 });
 
-/** Custo operacional. */
+/** Custo operacional (em R$). */
 export const custoOperacionalSchema = z.object({
   descricao: z.string().trim().min(1, "Informe a descrição").max(200),
   categoria: categoriaCustoEnum,
   valor: z.coerce.number().min(0, "Valor inválido"),
-  moeda: moedaEnum,
   data: z
     .string()
     .min(1, "Informe a data")
     .transform((v) => new Date(v.length === 10 ? `${v}T12:00:00.000Z` : v))
     .refine((d) => !isNaN(d.getTime()), "Data inválida"),
   recorrente: z.boolean().default(false),
-  taxaCambioNaDia: dinheiroOpcional,
-});
-
-/** Taxa de câmbio USD→BRL. */
-export const taxaCambioSchema = z.object({
-  taxa: z.coerce.number().min(0.01, "Taxa inválida").max(100),
 });
 
 export type AtivoFinanceiroInput = z.infer<typeof ativoFinanceiroSchema>;

@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 /** Todos os planos para a área admin (ordenados pela `ordem`). */
 export function getAdminRentalPlans(): Promise<RentalPlan[]> {
   return prisma.rentalPlan.findMany({
-    orderBy: [{ ordem: "asc" }, { precoMensalUSD: "asc" }],
+    orderBy: [{ ordem: "asc" }, { precoMensal: "asc" }],
   });
 }
 
@@ -21,7 +21,7 @@ export function getAdminRentalPlans(): Promise<RentalPlan[]> {
 export function getActiveRentalPlans(): Promise<RentalPlan[]> {
   return prisma.rentalPlan.findMany({
     where: { ativo: true },
-    orderBy: [{ ordem: "asc" }, { precoMensalUSD: "asc" }],
+    orderBy: [{ ordem: "asc" }, { precoMensal: "asc" }],
   });
 }
 
