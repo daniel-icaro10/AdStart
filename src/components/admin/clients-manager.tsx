@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ClientForm } from "@/components/admin/client-form";
+import { ClientLedger } from "@/components/admin/client-ledger";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { deleteClient } from "@/app/admin/actions";
 import { formatCurrency } from "@/lib/format";
@@ -192,7 +193,7 @@ export function ClientsManager({
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="admin-theme max-w-2xl">
+        <DialogContent className="admin-theme max-h-[88vh] max-w-3xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {current ? `Editar · ${current.nome}` : "Novo cliente"}
@@ -205,6 +206,15 @@ export function ClientsManager({
             onSuccess={handleSuccess}
             onCancel={() => setOpen(false)}
           />
+          {current && (
+            <div className="mt-2 border-t border-border pt-4">
+              <ClientLedger
+                key={`ledger-${current.id}`}
+                clientId={current.id}
+                initialEntries={current.entries}
+              />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

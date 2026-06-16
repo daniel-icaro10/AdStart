@@ -20,6 +20,7 @@ function ativo(p: Partial<AtivoFinanceiro>): AtivoFinanceiro {
   return {
     id: Math.random().toString(36).slice(2),
     origem: "asset",
+    grupo: "BM",
     titulo: "Ativo",
     tipo: "BM",
     fornecedor: null,
@@ -379,5 +380,26 @@ describe("calcularMetricas — investimento do período", () => {
     ];
     const m = calcularMetricas(ativos, custos, PERIODO, TAXA);
     expect(m.investimentoTotal).toBe(1300); // 1000 + 300
+  });
+});
+
+// ─── Faturamento por grupo (BM / Página / Perfil) ────────────────────────────
+
+describe("calcularMetricas — faturamento por grupo", () => {
+  it("separa receita/lucro/qtd por grupo dos vendidos no período", () => {
+    const ativos = [
+      // BM: receita 1500, lucro 500
+      ativo({ grupo: "BM", origem: "asset", statusVenda: "VENDIDO", custoAquisicao: 1000, precoVenda: 1500, dataSaida: dentro }),
+      // Página: receita 800, lucro 300
+      ativo({ grupo: "PAGINA", origem: "page", statusVenda: "VENDIDO", custoAquisicao: 500, precoVenda: 800, dataSaida: dentro }),
+      // Perfil: receita 1200, sem custo → lucro 0
+      ativo({ grupo: "PERFIL", origem: "page", statusVenda: "VENDIDO", custoAquisicao: null, precoVenda: 1200, dataSaida: dentro }),
+      // fora do período → ignorado
+      ativo({ grupo: "BM", origem: "asset", statusVenda: "VENDIDO", custoAquisicao: 100, precoVenda: 999, dataSaida: fora }),
+    ];
+    const m = calcularMetricas(ativos, [], PERIODO, TAXA);
+    expect(m.faturamentoPorGrupo.BM).toEqual({ receita: 1500, lucro: 500, quantidade: 1 });
+    expect(m.faturamentoPorGrupo.PAGINA).toEqual({ receita: 800, lucro: 300, quantidade: 1 });
+    expect(m.faturamentoPorGrupo.PERFIL).toEqual({ receita: 1200, lucro: 0, quantidade: 1 });
   });
 });

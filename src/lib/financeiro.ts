@@ -27,6 +27,7 @@ import {
   type PeriodoFiltro,
   type MetricasFinanceiras,
   type TipoAtivo,
+  type GrupoAtivo,
   type StatusAtivo,
   type MoedaAtivo,
   type CategoriasCusto,
@@ -39,6 +40,7 @@ export type {
   PeriodoFiltro,
   MetricasFinanceiras,
   TipoAtivo,
+  GrupoAtivo,
   StatusAtivo,
   MoedaAtivo,
   CategoriasCusto,
@@ -85,6 +87,7 @@ const ASSET_SELECT = {
 const PAGE_SELECT = {
   id: true,
   nome: true,
+  categoria: true,
   tipo: true,
   fornecedor: true,
   status: true,
@@ -112,6 +115,7 @@ function mapAsset(a: AssetRow): AtivoFinanceiro {
   return {
     id: a.id,
     origem: "asset",
+    grupo: "BM",
     titulo: a.titulo,
     tipo: (a.tipo ?? null) as TipoAtivo | null,
     fornecedor: a.fornecedor,
@@ -135,6 +139,7 @@ function mapPage(p: PageRow): AtivoFinanceiro {
   return {
     id: p.id,
     origem: "page",
+    grupo: p.categoria === "PERFIL" ? "PERFIL" : "PAGINA",
     titulo: p.nome,
     tipo: (p.tipo ?? null) as TipoAtivo | null,
     fornecedor: p.fornecedor,

@@ -1,13 +1,6 @@
-import { ClientsManager } from "@/components/admin/clients-manager";
-import { getAdminClients } from "@/lib/clients";
-import { getAdminRentalPlans } from "@/lib/rentals";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function AdminClientesPage() {
-  const [clients, plans] = await Promise.all([
-    getAdminClients(),
-    getAdminRentalPlans(),
-  ]);
-  return <ClientsManager clients={clients} plans={plans} />;
+// Clientes agora vivem dentro da aba "Aluguéis" (sub-aba Clientes).
+export default function AdminClientesPage() {
+  redirect("/admin/alugueis?tab=clientes");
 }

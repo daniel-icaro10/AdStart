@@ -11,10 +11,11 @@ import { getCategoryOrder } from "@/lib/settings";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [assets, pages, vendidosAssets, vendidosPages, rentals, order] =
+  const [assets, pages, perfis, vendidosAssets, vendidosPages, rentals, order] =
     await Promise.all([
       getCatalogAssets(),
-      getCatalogPages(),
+      getCatalogPages("PAGINA"),
+      getCatalogPages("PERFIL"),
       getVendidosAssets(),
       getVendidosPages(),
       getActiveRentalPlans(),
@@ -28,6 +29,7 @@ export default async function HomePage() {
       <CatalogTabs
         assets={assets}
         pages={pages}
+        perfis={perfis}
         vendidosAssets={vendidosAssets}
         vendidosPages={vendidosPages}
         rentals={rentals}

@@ -89,10 +89,11 @@ model AdAccount {
   dividas    Float? @default(0)
 }
 
-/// Uma página (perfil/fanpage) à venda.
+/// Uma página/perfil à venda. `categoria` separa Páginas de Perfis (mesma estrutura).
 model Page {
   id         String  @id @default(cuid())
   nome       String
+  categoria  String  @default("PAGINA") // "PAGINA" | "PERFIL"
   nicho      String? // legado — info agora vai no texto livre `conteudo`
   kind       String // "COM" | "SEM" (com ou sem seguidores)
   seguidores Int     @default(0)
@@ -200,8 +201,26 @@ model Client {
   status         String      @default("ATIVO") // "ATIVO" | "PAUSADO" | "CANCELADO"
   observacoes    String? // anotações livres sobre o cliente
 
+  entries ClientEntry[] // linhas da planilha do cliente
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status, dataVencimento])
+}
+
+/// Linha da planilha editável de um cliente (pagamentos/histórico).
+model ClientEntry {
+  id        String    @id @default(cuid())
+  clientId  String
+  client    Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  data      DateTime?
+  descricao String    @default("")
+  valor     Float?
+  status    String    @default("") // ex: "pago" | "pendente" | "atrasado"
+  ordem     Int       @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId, ordem])
 }

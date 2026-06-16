@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { BadgeCheck, KeyRound, type LucideIcon } from "lucide-react";
+import { BadgeCheck, KeyRound, AtSign, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { CatalogExplorer } from "./catalog-explorer";
@@ -14,11 +14,11 @@ import type { AssetWithContas } from "@/types";
 import type { PagePublic } from "@/types";
 import type { RentalPlan } from "@prisma/client";
 
-type View = "BMS" | "PAGINAS" | "VENDIDOS" | "ALUGUEIS";
+type View = "BMS" | "PAGINAS" | "PERFIS" | "VENDIDOS" | "ALUGUEIS";
 
 const STORAGE_KEY = "adstart:catalog-view";
 
-const VIEWS: View[] = ["BMS", "PAGINAS", "VENDIDOS", "ALUGUEIS"];
+const VIEWS: View[] = ["BMS", "PAGINAS", "PERFIS", "VENDIDOS", "ALUGUEIS"];
 
 /**
  * Seletor no topo do catálogo da landing: alterna entre exibir somente as BMs
@@ -28,6 +28,7 @@ const VIEWS: View[] = ["BMS", "PAGINAS", "VENDIDOS", "ALUGUEIS"];
 export function CatalogTabs({
   assets,
   pages,
+  perfis,
   vendidosAssets,
   vendidosPages,
   rentals,
@@ -35,6 +36,7 @@ export function CatalogTabs({
 }: {
   assets: AssetWithContas[];
   pages: PagePublic[];
+  perfis: PagePublic[];
   vendidosAssets: AssetWithContas[];
   vendidosPages: PagePublic[];
   rentals: RentalPlan[];
@@ -57,6 +59,7 @@ export function CatalogTabs({
     [
       { value: "BMS", label: "BMs", img: "/icon-bm.png" },
       { value: "PAGINAS", label: "Páginas", img: "/icon-paginas.png" },
+      { value: "PERFIS", label: "Perfis", Icon: AtSign },
       { value: "VENDIDOS", label: "Vendidos", Icon: BadgeCheck },
       { value: "ALUGUEIS", label: "Aluguéis", Icon: KeyRound },
     ];
@@ -114,6 +117,8 @@ export function CatalogTabs({
         <CatalogExplorer assets={assets} order={order} />
       ) : view === "PAGINAS" ? (
         <PagesSection pages={pages} />
+      ) : view === "PERFIS" ? (
+        <PagesSection pages={perfis} variant="perfil" />
       ) : view === "VENDIDOS" ? (
         <VendidosSection assets={vendidosAssets} pages={vendidosPages} />
       ) : (

@@ -1,9 +1,6 @@
-import { PagesManager } from "@/components/admin/pages-manager";
-import { getAdminPages } from "@/lib/pages";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function AdminPaginasPage() {
-  const pages = await getAdminPages();
-  return <PagesManager pages={pages} />;
+// Páginas agora vivem dentro da aba "Ativos" (sub-aba Páginas).
+export default function AdminPaginasPage() {
+  redirect("/admin/ativos?tab=paginas");
 }

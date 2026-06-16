@@ -10,6 +10,7 @@ import {
   pageSchema,
   rentalPlanSchema,
   clientSchema,
+  clientEntrySchema,
 } from "@/lib/validation";
 import { CATEGORIA_ORDER } from "@/lib/constants";
 import { CATEGORY_ORDER_KEY } from "@/lib/settings";
@@ -31,7 +32,7 @@ function revalidateAssets() {
 
 function revalidatePages() {
   revalidatePath("/");
-  revalidatePath("/admin/paginas");
+  revalidatePath("/admin/ativos");
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +160,7 @@ export async function createPage(input: unknown): Promise<ActionResult> {
   const page = await prisma.page.create({
     data: {
       nome: data.nome,
+      categoria: data.categoria,
       kind: data.kind,
       status: data.status,
       valor: data.valor,
@@ -190,6 +192,7 @@ export async function updatePage(
       where: { id },
       data: {
         nome: data.nome,
+        categoria: data.categoria,
         kind: data.kind,
         status: data.status,
         valor: data.valor,
@@ -328,6 +331,7 @@ export async function deleteRentalPlan(id: string): Promise<ActionResult> {
 
 function revalidateClients() {
   revalidatePath("/admin/clientes");
+  revalidatePath("/admin/alugueis");
 }
 
 export async function createClient(input: unknown): Promise<ActionResult> {
@@ -381,6 +385,49 @@ export async function updateClient(
 export async function deleteClient(id: string): Promise<ActionResult> {
   await requireAdmin();
   await prisma.client.delete({ where: { id } });
+  revalidateClients();
+  return { ok: true };
+}
+
+// ── Planilha do cliente (ClientEntry) ────────────────────────────────────────
+
+/** Cria uma linha em branco na planilha do cliente (no fim). */
+export async function addClientEntry(clientId: string): Promise<ActionResult> {
+  await requireAdmin();
+  if (!clientId) return { ok: false, error: "Cliente inválido." };
+  const count = await prisma.clientEntry.count({ where: { clientId } });
+  const entry = await prisma.clientEntry.create({
+    data: { clientId, ordem: count },
+  });
+  revalidateClients();
+  return { ok: true, id: entry.id };
+}
+
+/** Atualiza uma linha da planilha. */
+export async function updateClientEntry(input: unknown): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = clientEntrySchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+  const d = parsed.data;
+  await prisma.clientEntry.update({
+    where: { id: d.id },
+    data: {
+      data: d.data,
+      descricao: d.descricao,
+      valor: d.valor,
+      status: d.status,
+    },
+  });
+  revalidateClients();
+  return { ok: true };
+}
+
+/** Remove uma linha da planilha. */
+export async function deleteClientEntry(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  await prisma.clientEntry.delete({ where: { id } });
   revalidateClients();
   return { ok: true };
 }

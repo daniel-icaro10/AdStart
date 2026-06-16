@@ -1,6 +1,7 @@
 import { LayoutDashboard } from "lucide-react";
 
 import { getDashboardData } from "@/lib/dashboard";
+import { FaturamentoPorGrupo } from "@/components/admin/financeiro/faturamento-por-grupo";
 import { DashboardKpis } from "@/components/admin/dashboard/dashboard-kpis";
 import { DashboardAtalhos } from "@/components/admin/dashboard/dashboard-atalhos";
 import { DashboardAlertas } from "@/components/admin/dashboard/dashboard-alertas";
@@ -28,6 +29,8 @@ export default async function AdminDashboardPage() {
       </div>
 
       <DashboardKpis m={d.metricas} />
+
+      <FaturamentoPorGrupo m={d.metricas} />
 
       <DashboardAlertas
         aging={d.aging}

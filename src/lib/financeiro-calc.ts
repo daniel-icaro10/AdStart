@@ -16,6 +16,8 @@ export const TAXA_CAMBIO_DEFAULT = 5.5;
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export type TipoAtivo = "BM" | "CONTA_ANUNCIO" | "KIT" | "PERFIL" | "PAGINA";
+/** Grupo de faturamento: BMs, Páginas ou Perfis. */
+export type GrupoAtivo = "BM" | "PAGINA" | "PERFIL";
 export type StatusAtivo = "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "PERDIDO";
 export type MoedaAtivo = "BRL" | "USD";
 export type CategoriasCusto =
@@ -32,6 +34,8 @@ export interface AtivoFinanceiro {
   id: string;
   /** Tabela de origem: "asset" (BMs) ou "page" (perfis/páginas). */
   origem: "asset" | "page";
+  /** Grupo de faturamento: BM | PAGINA | PERFIL (derivado de origem/categoria). */
+  grupo: GrupoAtivo;
   titulo: string;
   tipo: TipoAtivo | null;
   fornecedor: string | null;
@@ -114,6 +118,14 @@ export interface MetricasFinanceiras {
   lucroPorTipo: Record<string, { lucroRealizado: number; quantidade: number }>;
   /** Composição do estoque atual por tipo (custo em BRL e quantidade). */
   estoquePorTipo: Record<string, { custo: number; quantidade: number }>;
+  /**
+   * Faturamento dos vendidos no período por GRUPO (BM / PAGINA / PERFIL):
+   * receita (em R$), lucro (vendas com custo) e quantidade.
+   */
+  faturamentoPorGrupo: Record<
+    GrupoAtivo,
+    { receita: number; lucro: number; quantidade: number }
+  >;
 }
 
 // ─── Conversão de tipos Prisma → primitivos ──────────────────────────────────
@@ -313,6 +325,24 @@ export function calcularMetricas(
     estoquePorTipo[tipo].custo += custoEmBRL(a) ?? 0;
   }
 
+  // ── faturamento por grupo (BM / Página / Perfil) ──────────────────────
+  const faturamentoPorGrupo: Record<
+    GrupoAtivo,
+    { receita: number; lucro: number; quantidade: number }
+  > = {
+    BM: { receita: 0, lucro: 0, quantidade: 0 },
+    PAGINA: { receita: 0, lucro: 0, quantidade: 0 },
+    PERFIL: { receita: 0, lucro: 0, quantidade: 0 },
+  };
+  for (const a of vendidosNoPeriodo) {
+    const g = faturamentoPorGrupo[a.grupo];
+    const receita = precoVendaEmBRL(a);
+    g.receita += receita;
+    g.quantidade++;
+    const custo = custoEmBRL(a);
+    if (custo !== null) g.lucro += receita - custo;
+  }
+
   return {
     investimentoTotal,
     receitaRealizada,
@@ -335,6 +365,7 @@ export function calcularMetricas(
     totalPerdidoPeriodo: perdidosNoPeriodo.length,
     lucroPorTipo,
     estoquePorTipo,
+    faturamentoPorGrupo,
   };
 }
 
