@@ -63,14 +63,11 @@ export function Footer() {
       </div>
 
       <div className="border-t border-border">
-        <div className="container flex flex-col items-center justify-between gap-2 py-4 text-xs text-muted-foreground sm:flex-row">
+        <div className="container flex items-center justify-center gap-2 py-4 text-center text-xs text-muted-foreground">
           <span>
             © {new Date().getFullYear()} {siteConfig.agencyName}. Todos os
             direitos reservados.
           </span>
-          <Link href="/login" className="hover:text-foreground">
-            Área administrativa
-          </Link>
         </div>
       </div>
     </footer>
