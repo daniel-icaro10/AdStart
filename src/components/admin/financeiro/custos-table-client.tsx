@@ -133,7 +133,6 @@ function NovoCustoForm({ onDone }: { onDone: () => void }) {
   const [descricao, setDescricao] = React.useState("");
   const [categoria, setCategoria] = React.useState("INFRAESTRUTURA");
   const [valor, setValor] = React.useState("");
-  const [moeda, setMoeda] = React.useState("BRL");
   const [data, setData] = React.useState(hoje());
   const [recorrente, setRecorrente] = React.useState(false);
   const [pending, setPending] = React.useState(false);
@@ -143,7 +142,7 @@ function NovoCustoForm({ onDone }: { onDone: () => void }) {
     e.preventDefault();
     setPending(true);
     setError(null);
-    const res = await criarCusto({ descricao, categoria, valor, moeda, data, recorrente });
+    const res = await criarCusto({ descricao, categoria, valor, data, recorrente });
     setPending(false);
     if (res.ok) onDone();
     else setError(res.error);
@@ -183,7 +182,7 @@ function NovoCustoForm({ onDone }: { onDone: () => void }) {
           <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label>Valor *</Label>
+          <Label>Valor (R$) *</Label>
           <Input
             type="number"
             step="0.01"
@@ -192,16 +191,6 @@ function NovoCustoForm({ onDone }: { onDone: () => void }) {
             value={valor}
             onChange={(e) => setValor(e.target.value)}
           />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Moeda</Label>
-          <Select value={moeda} onValueChange={setMoeda}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="BRL">Real (R$)</SelectItem>
-              <SelectItem value="USD">Dólar (US$)</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 

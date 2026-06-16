@@ -1,15 +1,11 @@
 import { FinanceiroNav } from "@/components/admin/financeiro/financeiro-nav";
 import { CustosTableClient } from "@/components/admin/financeiro/custos-table-client";
-import { TaxaCambioForm } from "@/components/admin/financeiro/taxa-cambio-form";
-import { getCustosSerializados, getTaxaAtual } from "@/lib/financeiro";
+import { getCustosSerializados } from "@/lib/financeiro";
 
 export const dynamic = "force-dynamic";
 
 export default async function FinanceiroCustosPage() {
-  const [custos, taxa] = await Promise.all([
-    getCustosSerializados(),
-    getTaxaAtual(),
-  ]);
+  const custos = await getCustosSerializados();
 
   return (
     <div className="space-y-6">
@@ -24,9 +20,6 @@ export default async function FinanceiroCustosPage() {
       </div>
 
       <FinanceiroNav />
-      <div className="max-w-md">
-        <TaxaCambioForm taxaAtual={taxa} />
-      </div>
       <CustosTableClient custos={custos} />
     </div>
   );

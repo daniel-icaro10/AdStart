@@ -67,8 +67,8 @@ import { TIPO_LABELS } from "./assets-filters";
 type Ativo = SerializedAtivoFinanceiro;
 type ModalKind = "vender" | "perder" | "editar" | "reverter" | "detalhe";
 
-const moedaFmt = (v: number | null, moeda: string | null) =>
-  v == null ? "—" : formatCurrency(v, (moeda as "BRL" | "USD") ?? "BRL");
+const moedaFmt = (v: number | null) =>
+  v == null ? "—" : formatCurrency(v, "BRL");
 
 const hoje = () => new Date().toISOString().slice(0, 10);
 
@@ -166,10 +166,10 @@ export function AssetsTableClient({
                     </TableCell>
                     <TableCell className="text-xs">{a.fornecedor ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {moedaFmt(a.custoAquisicao, a.moedaCusto)}
+                      {moedaFmt(a.custoAquisicao)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {moedaFmt(a.precoPrevisto, a.moedaCusto)}
+                      {moedaFmt(a.precoPrevisto)}
                     </TableCell>
                     <TableCell
                       className={cn(
@@ -178,7 +178,7 @@ export function AssetsTableClient({
                         margem != null && margem < 0 && "text-negative",
                       )}
                     >
-                      {moedaFmt(margem, a.moedaCusto)}
+                      {moedaFmt(margem)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums text-muted-foreground">
                       {diasEmEstoque(a.dataEntrada, a.dataSaida)}
@@ -353,10 +353,6 @@ function Footer({
 function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
   const { pending, error, run } = useSubmit(venderAtivo);
   const [precoVenda, setPreco] = React.useState("");
-  // Default: mesma moeda do custo (BM em US$ → venda já sugere US$).
-  const [moedaVenda, setMoeda] = React.useState<string>(
-    ativo.moedaCusto ?? "BRL",
-  );
   const [comprador, setComprador] = React.useState("");
   const [dataSaida, setData] = React.useState(hoje());
 
@@ -369,7 +365,6 @@ function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
             origem: ativo.origem,
             id: ativo.id,
             precoVenda,
-            moedaVenda,
             comprador,
             dataSaida,
           },
@@ -382,32 +377,18 @@ function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
         <DialogTitle>Marcar como vendido</DialogTitle>
       </DialogHeader>
       <p className="text-sm text-muted-foreground">{ativo.titulo}</p>
-      <div className="grid grid-cols-[1fr_130px] gap-3">
-        <div className="space-y-1.5">
-          <Label>Preço de venda *</Label>
-          <Input
-            type="number"
-            step="0.01"
-            min="0"
-            required
-            autoFocus
-            value={precoVenda}
-            onChange={(e) => setPreco(e.target.value)}
-            placeholder="Ex: 1500"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Moeda</Label>
-          <Select value={moedaVenda} onValueChange={setMoeda}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="BRL">Real (R$)</SelectItem>
-              <SelectItem value="USD">Dólar (US$)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-1.5">
+        <Label>Preço de venda (R$) *</Label>
+        <Input
+          type="number"
+          step="0.01"
+          min="0"
+          required
+          autoFocus
+          value={precoVenda}
+          onChange={(e) => setPreco(e.target.value)}
+          placeholder="Ex: 1500"
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
@@ -474,7 +455,6 @@ function EditarForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
   const [custoAquisicao, setCusto] = React.useState(
     ativo.custoAquisicao != null ? String(ativo.custoAquisicao) : "",
   );
-  const [moedaCusto, setMoeda] = React.useState<string>(ativo.moedaCusto ?? "BRL");
   const [dataEntrada, setEntrada] = React.useState(
     ativo.dataEntrada ? ativo.dataEntrada.slice(0, 10) : "",
   );
@@ -494,7 +474,6 @@ function EditarForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
             tipo: tipo === "NONE" ? null : tipo,
             fornecedor,
             custoAquisicao,
-            moedaCusto,
             dataEntrada,
             precoPrevisto,
             observacoes,
@@ -527,21 +506,11 @@ function EditarForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
           <Input value={fornecedor} onChange={(e) => setForn(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label>Custo</Label>
+          <Label>Custo (R$)</Label>
           <Input type="number" step="0.01" min="0" value={custoAquisicao} onChange={(e) => setCusto(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label>Moeda do custo</Label>
-          <Select value={moedaCusto} onValueChange={setMoeda}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="BRL">Real (R$)</SelectItem>
-              <SelectItem value="USD">Dólar (US$)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Preço previsto</Label>
+          <Label>Preço previsto (R$)</Label>
           <Input type="number" step="0.01" min="0" value={precoPrevisto} onChange={(e) => setPrevisto(e.target.value)} />
         </div>
         <div className="space-y-1.5">

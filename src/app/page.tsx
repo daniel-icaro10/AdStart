@@ -4,18 +4,20 @@ import { HowToBuy } from "@/components/landing/how-to-buy";
 import { Footer } from "@/components/landing/footer";
 import { getCatalogAssets, getVendidosAssets } from "@/lib/assets";
 import { getCatalogPages, getVendidosPages } from "@/lib/pages";
+import { getActiveRentalPlans } from "@/lib/rentals";
 import { getCategoryOrder } from "@/lib/settings";
 
 // Sempre renderiza com dados frescos do banco (catálogo muda com frequência).
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [assets, pages, vendidosAssets, vendidosPages, order] =
+  const [assets, pages, vendidosAssets, vendidosPages, rentals, order] =
     await Promise.all([
       getCatalogAssets(),
       getCatalogPages(),
       getVendidosAssets(),
       getVendidosPages(),
+      getActiveRentalPlans(),
       getCategoryOrder(),
     ]);
 
@@ -28,6 +30,7 @@ export default async function HomePage() {
         pages={pages}
         vendidosAssets={vendidosAssets}
         vendidosPages={vendidosPages}
+        rentals={rentals}
         order={order}
       />
 

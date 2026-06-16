@@ -5,7 +5,6 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getTaxaAtual } from "@/lib/financeiro";
 import { custoOperacionalSchema } from "@/lib/financeiro-validation";
 import type { FinanceiroResult } from "@/app/admin/financeiro/actions";
 
@@ -19,7 +18,7 @@ function revalidate() {
   revalidatePath("/admin/financeiro/custos");
 }
 
-/** Lança um custo operacional. Congela a taxa do dia se em USD e não informada. */
+/** Lança um custo operacional (em R$). */
 export async function criarCusto(input: unknown): Promise<FinanceiroResult> {
   await requireAdmin();
   const parsed = custoOperacionalSchema.safeParse(input);
@@ -27,18 +26,16 @@ export async function criarCusto(input: unknown): Promise<FinanceiroResult> {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
   const d = parsed.data;
-  const taxaFinal =
-    d.taxaCambioNaDia ?? (d.moeda === "USD" ? await getTaxaAtual() : null);
 
   await prisma.custoOperacional.create({
     data: {
       descricao: d.descricao,
       categoria: d.categoria,
       valor: d.valor,
-      moeda: d.moeda,
+      moeda: "BRL",
       data: d.data,
       recorrente: d.recorrente,
-      taxaCambioNaDia: taxaFinal,
+      taxaCambioNaDia: null,
     },
   });
   revalidate();

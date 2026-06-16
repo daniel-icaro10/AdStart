@@ -163,3 +163,45 @@ model User {
   name     String?
   role     String  @default("ADMIN")
 }
+
+/// Plano de aluguel de contas de agência. Preços/quotas 100% editáveis no admin.
+model RentalPlan {
+  id                           String  @id @default(cuid())
+  nome                         String // ex: "Plano A"
+  slug                         String  @unique
+  precoMensal                  Float // preço mensal em R$
+  contasAtivas                 Int     @default(0) // contas de anúncio ativas
+  reposicoesIlimitadas         Boolean @default(false)
+  paginasAntigas2021           Boolean @default(false)
+  paginasAntigas2021Ilimitadas Boolean @default(false)
+  perfisVerificados            Int     @default(0)
+  beneficios                   String? // benefícios extras em texto livre (um por linha)
+  destaque                     Boolean @default(false) // "mais popular"
+  ordem                        Int     @default(0) // ordenação dos cards
+  ativo                        Boolean @default(true) // mostra/oculta na landing
+
+  clientes Client[] // clientes vinculados a este plano
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ativo, ordem])
+}
+
+/// Cliente do controle de aluguéis (CRM simples — admin only).
+model Client {
+  id             String      @id @default(cuid())
+  nome           String
+  contato        String? // whatsapp/telefone/email
+  planId         String?
+  plan           RentalPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  valorMensal    Float? // R$/mês (sugestão do plano, editável)
+  dataVencimento DateTime? // próximo vencimento
+  status         String      @default("ATIVO") // "ATIVO" | "PAUSADO" | "CANCELADO"
+  observacoes    String? // anotações livres sobre o cliente
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, dataVencimento])
+}

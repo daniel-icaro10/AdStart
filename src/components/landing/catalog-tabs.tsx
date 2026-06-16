@@ -2,21 +2,23 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { BadgeCheck, type LucideIcon } from "lucide-react";
+import { BadgeCheck, KeyRound, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { CatalogExplorer } from "./catalog-explorer";
 import { PagesSection } from "./pages-section";
 import { VendidosSection } from "./vendidos-section";
+import { RentalsSection } from "./rentals-section";
 import type { Categoria } from "@/lib/constants";
 import type { AssetWithContas } from "@/types";
 import type { PagePublic } from "@/types";
+import type { RentalPlan } from "@prisma/client";
 
-type View = "BMS" | "PAGINAS" | "VENDIDOS";
+type View = "BMS" | "PAGINAS" | "VENDIDOS" | "ALUGUEIS";
 
 const STORAGE_KEY = "adstart:catalog-view";
 
-const VIEWS: View[] = ["BMS", "PAGINAS", "VENDIDOS"];
+const VIEWS: View[] = ["BMS", "PAGINAS", "VENDIDOS", "ALUGUEIS"];
 
 /**
  * Seletor no topo do catálogo da landing: alterna entre exibir somente as BMs
@@ -28,12 +30,14 @@ export function CatalogTabs({
   pages,
   vendidosAssets,
   vendidosPages,
+  rentals,
   order,
 }: {
   assets: AssetWithContas[];
   pages: PagePublic[];
   vendidosAssets: AssetWithContas[];
   vendidosPages: PagePublic[];
+  rentals: RentalPlan[];
   order?: Categoria[];
 }) {
   const [view, setView] = React.useState<View>("BMS");
@@ -54,19 +58,20 @@ export function CatalogTabs({
       { value: "BMS", label: "BMs", img: "/icon-bm.png" },
       { value: "PAGINAS", label: "Páginas", img: "/icon-paginas.png" },
       { value: "VENDIDOS", label: "Vendidos", Icon: BadgeCheck },
+      { value: "ALUGUEIS", label: "Aluguéis", Icon: KeyRound },
     ];
 
   const activeIndex = VIEWS.indexOf(view);
 
   return (
     <section id="catalogo" className="container pt-8 pb-16 sm:pt-10 sm:pb-20">
-      {/* seletor moderno BMs / Páginas */}
-      <div className="mb-8 flex justify-center">
-        <div className="relative inline-flex rounded-full border border-border bg-card/80 p-1 shadow-sm backdrop-blur">
+      {/* seletor moderno BMs / Páginas / Vendidos / Aluguéis */}
+      <div className="mb-8 -mx-4 flex justify-center overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+        <div className="relative inline-flex shrink-0 rounded-full border border-border bg-card/80 p-1 shadow-sm backdrop-blur">
           {/* pílula deslizante */}
           <span
             aria-hidden
-            className="absolute left-1 top-1 bottom-1 w-[106px] rounded-full bg-primary shadow-[0_6px_24px_-6px_rgb(var(--brand)/0.8)] transition-transform duration-300 ease-out sm:w-[132px]"
+            className="absolute left-1 top-1 bottom-1 w-[92px] rounded-full bg-primary shadow-[0_6px_24px_-6px_rgb(var(--brand)/0.8)] transition-transform duration-300 ease-out sm:w-[124px]"
             style={{ transform: `translateX(${activeIndex * 100}%)` }}
           />
           {tabs.map((t) => {
@@ -78,7 +83,7 @@ export function CatalogTabs({
                 onClick={() => select(t.value)}
                 aria-pressed={active}
                 className={cn(
-                  "relative z-10 inline-flex w-[106px] items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition-colors sm:w-[132px]",
+                  "relative z-10 inline-flex w-[92px] shrink-0 items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition-colors sm:w-[124px]",
                   active
                     ? "text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -109,8 +114,10 @@ export function CatalogTabs({
         <CatalogExplorer assets={assets} order={order} />
       ) : view === "PAGINAS" ? (
         <PagesSection pages={pages} />
-      ) : (
+      ) : view === "VENDIDOS" ? (
         <VendidosSection assets={vendidosAssets} pages={vendidosPages} />
+      ) : (
+        <RentalsSection plans={rentals} />
       )}
     </section>
   );
