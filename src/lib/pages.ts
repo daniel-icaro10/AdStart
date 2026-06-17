@@ -16,6 +16,8 @@ const PUBLIC_PAGE_SELECT = {
   valor: true,
   destaque: true,
   conteudo: true,
+  // imagem de capa (a primeira) — exibida direto no card da vitrine.
+  imagens: { select: { data: true }, orderBy: { ordem: "asc" }, take: 1 },
 } as const satisfies Prisma.PageSelect;
 
 /**

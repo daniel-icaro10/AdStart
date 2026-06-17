@@ -29,6 +29,7 @@ export function PageCard({ page }: { page: PagePublic }) {
   const kindMeta = PAGE_KIND_META[page.kind as "COM" | "SEM"];
   const [open, setOpen] = React.useState(false);
   const tilt = useTilt<HTMLButtonElement>();
+  const capa = page.imagens?.[0]?.data;
 
   return (
     <>
@@ -39,12 +40,24 @@ export function PageCard({ page }: { page: PagePublic }) {
         onMouseMove={tilt.onMouseMove}
         onMouseLeave={tilt.onMouseLeave}
         className={cn(
-          "group ad-hover-glow w-full rounded-xl p-4 text-left shadow-sm",
+          "group ad-hover-glow flex w-full flex-col overflow-hidden rounded-xl text-left shadow-sm",
           kindMeta.cardClass,
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           isVendido && "opacity-60",
         )}
       >
+        {capa && (
+          <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-border/60 bg-black/20">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={capa}
+              alt={page.nome}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          </div>
+        )}
+
+        <div className="p-4">
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge variant="secondary">{kindMeta.label}</Badge>
           {page.destaque && !isVendido && (
@@ -84,6 +97,7 @@ export function PageCard({ page }: { page: PagePublic }) {
           <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">
             Ver detalhes →
           </span>
+        </div>
         </div>
       </button>
 

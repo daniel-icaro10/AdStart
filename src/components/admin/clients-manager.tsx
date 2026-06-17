@@ -212,6 +212,7 @@ export function ClientsManager({
                 key={`ledger-${current.id}`}
                 clientId={current.id}
                 initialEntries={current.entries}
+                initialNotes={current.observacoes ?? ""}
               />
             </div>
           )}

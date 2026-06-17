@@ -43,6 +43,7 @@ export type PagePublic = Prisma.PageGetPayload<{
     valor: true;
     destaque: true;
     conteudo: true;
+    imagens: { select: { data: true } };
   };
 }>;
 
