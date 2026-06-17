@@ -349,7 +349,6 @@ export async function createClient(input: unknown): Promise<ActionResult> {
       valorMensal: d.valorMensal,
       dataVencimento: d.dataVencimento,
       status: d.status,
-      observacoes: d.observacoes || null,
     },
   });
   revalidateClients();
@@ -375,7 +374,7 @@ export async function updateClient(
       valorMensal: d.valorMensal,
       dataVencimento: d.dataVencimento,
       status: d.status,
-      observacoes: d.observacoes || null,
+      // observacoes preservado — editado pela planilha/bloco (updateClientNotes)
     },
   });
   revalidateClients();
@@ -428,6 +427,21 @@ export async function updateClientEntry(input: unknown): Promise<ActionResult> {
 export async function deleteClientEntry(id: string): Promise<ActionResult> {
   await requireAdmin();
   await prisma.clientEntry.delete({ where: { id } });
+  revalidateClients();
+  return { ok: true };
+}
+
+/** Salva o bloco de anotações livres do cliente (campo observacoes). */
+export async function updateClientNotes(
+  clientId: string,
+  anotacoes: string,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (!clientId) return { ok: false, error: "Cliente inválido." };
+  await prisma.client.update({
+    where: { id: clientId },
+    data: { observacoes: anotacoes.slice(0, 5000) || null },
+  });
   revalidateClients();
   return { ok: true };
 }

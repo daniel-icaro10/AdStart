@@ -8,7 +8,6 @@ import { Loader2, Save, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -33,7 +32,6 @@ interface ClientFormValues {
   valorMensal: string;
   dataVencimento: string;
   status: string;
-  observacoes: string;
 }
 
 const s = (v: number | null | undefined) => (v == null ? "" : String(v));
@@ -48,7 +46,6 @@ function toDefaults(client?: ClientWithPlan): ClientFormValues {
       ? new Date(client.dataVencimento).toISOString().slice(0, 10)
       : "",
     status: client?.status ?? "ATIVO",
-    observacoes: client?.observacoes ?? "",
   };
 }
 
@@ -197,16 +194,6 @@ export function ClientForm({
             )}
           />
         </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>Observações</Label>
-        <Textarea
-          {...register("observacoes")}
-          rows={4}
-          placeholder="Anotações sobre o cliente (histórico, combinados, etc.)"
-          className="min-h-[90px] text-sm leading-relaxed"
-        />
       </div>
 
       <div className="flex justify-end gap-2 pt-2">

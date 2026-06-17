@@ -122,7 +122,7 @@ export const clientSchema = z.object({
   valorMensal: valorOpcional,
   dataVencimento: dataVencimentoOpcional,
   status: z.enum(["ATIVO", "PAUSADO", "CANCELADO"]).default("ATIVO"),
-  observacoes: z.string().trim().max(2000).optional().default(""),
+  // `observacoes` (anotações) é gerenciado à parte, na planilha/bloco do cliente.
 });
 
 export type ClientInput = z.infer<typeof clientSchema>;
