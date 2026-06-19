@@ -144,3 +144,31 @@ export async function enviarAvisosCobranca(): Promise<ResultadoAvisos> {
 
   return { clientes: cobrancas.length, enviados, erros };
 }
+
+/** Envia o aviso de cobrança para UM cliente específico (só o cliente, não a agência). */
+export async function enviarAvisoParaCliente(
+  clientId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const c = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: { plan: { select: { nome: true } } },
+  });
+  if (!c) return { ok: false, error: "Cliente não encontrado." };
+  if (!c.dataVencimento) {
+    return { ok: false, error: "Cliente sem data de vencimento." };
+  }
+  const fone = normalizePhone(c.contato);
+  if (!fone) {
+    return { ok: false, error: "Sem WhatsApp válido no contato do cliente." };
+  }
+  const cob: CobrancaParaAvisar = {
+    id: c.id,
+    nome: c.nome,
+    contato: c.contato,
+    valorMensal: c.valorMensal,
+    dataVencimento: c.dataVencimento,
+    planoNome: c.plan?.nome ?? null,
+    diasAteVencimento: diasAte(c.dataVencimento),
+  };
+  return sendWhatsapp(fone, mensagemCliente(cob));
+}

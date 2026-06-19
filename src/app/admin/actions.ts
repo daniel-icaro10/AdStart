@@ -13,7 +13,10 @@ import {
   clientEntrySchema,
 } from "@/lib/validation";
 import { CATEGORIA_ORDER } from "@/lib/constants";
-import { enviarAvisosCobranca } from "@/lib/cobrancas";
+import {
+  enviarAvisosCobranca,
+  enviarAvisoParaCliente,
+} from "@/lib/cobrancas";
 import { CATEGORY_ORDER_KEY } from "@/lib/settings";
 
 export type ActionResult =
@@ -454,6 +457,19 @@ export async function dispararAvisosCobranca(): Promise<AvisosResult> {
   try {
     const r = await enviarAvisosCobranca();
     return { ok: true, ...r };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** Envia o aviso de cobrança para UM cliente específico (só o cliente). */
+export async function enviarAvisoCliente(
+  clientId: string,
+): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    const r = await enviarAvisoParaCliente(clientId);
+    return r.ok ? { ok: true } : { ok: false, error: r.error ?? "Falha no envio." };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
