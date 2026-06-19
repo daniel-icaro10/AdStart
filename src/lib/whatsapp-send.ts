@@ -1,12 +1,11 @@
 /**
- * Adaptador de envio de WhatsApp via instância whatsmeow (HTTP).
+ * Adaptador de envio de WhatsApp via serviço próprio `wa-service` (whatsmeow).
+ * Contrato (main.go): POST /send · header `X-Secret: <WA_SECRET>` ·
+ * corpo `{ "to": "5511999999999", "message": "..." }`.
  *
  * Configuração por variáveis de ambiente:
- *   - WHATSMEOW_API_URL   → endpoint de envio (ex.: https://meu-zap.com/send)
- *   - WHATSMEOW_API_TOKEN → token de autenticação (opcional)
- *
- * ⚠️ AJUSTE `montarRequisicao` conforme a SUA API. O default cobre os wrappers
- * mais comuns (corpo JSON { phone, message } + token via Bearer e header `token`).
+ *   - WHATSMEOW_API_URL   → endpoint completo de envio (ex.: http://IP:8080/send)
+ *   - WHATSMEOW_API_TOKEN → valor do WA_SECRET (enviado no header X-Secret)
  */
 
 export interface SendResult {
@@ -28,7 +27,7 @@ export function normalizePhone(
   return d;
 }
 
-/** Monta a requisição HTTP para a API. Ponto único para adaptar ao seu wrapper. */
+/** Monta a requisição HTTP para o wa-service (POST /send + X-Secret + {to, message}). */
 function montarRequisicao(
   url: string,
   token: string | undefined,
@@ -41,10 +40,9 @@ function montarRequisicao(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}`, token } : {}),
+        ...(token ? { "X-Secret": token } : {}),
       },
-      // ⚠️ Ajuste os nomes dos campos conforme a sua API whatsmeow.
-      body: JSON.stringify({ phone, message }),
+      body: JSON.stringify({ to: phone, message }),
     },
   };
 }
