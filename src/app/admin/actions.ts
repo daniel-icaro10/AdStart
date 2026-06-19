@@ -65,6 +65,9 @@ export async function createAsset(input: unknown): Promise<ActionResult> {
       tier: data.tier ?? null,
       valor: data.valor,
       moeda: moedaFromIcone(data.icone),
+      custoAquisicao: data.custoAquisicao,
+      moedaCusto: data.custoAquisicao != null ? "BRL" : null,
+      dataEntrada: new Date(), // entrou no estoque agora
       imagens: {
         create: (data.imagens ?? []).map((url, i) => ({ data: url, ordem: i })),
       },
@@ -100,6 +103,8 @@ export async function updateAsset(
         tier: data.tier ?? null,
         valor: data.valor,
         moeda: moedaFromIcone(data.icone),
+        custoAquisicao: data.custoAquisicao,
+        moedaCusto: data.custoAquisicao != null ? "BRL" : null,
         imagens: {
           create: (data.imagens ?? []).map((url, i) => ({ data: url, ordem: i })),
         },
@@ -166,6 +171,9 @@ export async function createPage(input: unknown): Promise<ActionResult> {
       valor: data.valor,
       destaque: data.destaque,
       conteudo: data.conteudo || null,
+      custoAquisicao: data.custoAquisicao,
+      moedaCusto: data.custoAquisicao != null ? "BRL" : null,
+      dataEntrada: new Date(), // entrou no estoque agora
       imagens: {
         create: (data.imagens ?? []).map((url, i) => ({ data: url, ordem: i })),
       },
@@ -198,6 +206,8 @@ export async function updatePage(
         valor: data.valor,
         destaque: data.destaque,
         conteudo: data.conteudo || null,
+        custoAquisicao: data.custoAquisicao,
+        moedaCusto: data.custoAquisicao != null ? "BRL" : null,
         imagens: {
           create: (data.imagens ?? []).map((url, i) => ({ data: url, ordem: i })),
         },

@@ -27,6 +27,7 @@ interface PageFormValues {
   kind: "COM" | "SEM";
   status: StatusVenda;
   valor: string;
+  custoAquisicao: string;
   destaque: boolean;
   conteudo: string;
   imagens: string[];
@@ -40,6 +41,7 @@ function toDefaults(page?: PageWithImages): PageFormValues {
     kind: (page?.kind as "COM" | "SEM") ?? "COM",
     status: (page?.status as StatusVenda) ?? "DISPONIVEL",
     valor: s(page?.valor),
+    custoAquisicao: page?.custoAquisicao != null ? String(page.custoAquisicao) : "",
     destaque: page?.destaque ?? false,
     conteudo: page?.conteudo ?? "",
     imagens: page?.imagens?.map((i) => i.data) ?? [],
@@ -115,8 +117,8 @@ export function PageForm({
         )}
       </div>
 
-      {/* linha 2: tipo + status + preço */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      {/* linha 2: tipo + status + preço + custo */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-1.5">
           <Label>Tipo</Label>
           <Controller
@@ -157,7 +159,7 @@ export function PageForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Valor (R$)</Label>
+          <Label>Preço de venda (R$)</Label>
           <Input
             type="number"
             step="0.01"
@@ -168,6 +170,16 @@ export function PageForm({
           {errors.valor && (
             <p className="text-xs text-destructive">{errors.valor.message}</p>
           )}
+        </div>
+        <div className="space-y-1.5">
+          <Label>Custo (R$)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="Quanto você pagou"
+            {...register("custoAquisicao")}
+          />
         </div>
       </div>
 

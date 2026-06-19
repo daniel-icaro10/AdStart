@@ -340,18 +340,30 @@ export async function getAtivosFinanceirosPaginados(
     assetWhere.statusVenda = status;
     pageWhere.status = status;
   }
+
+  // Origem e tipo decidem quais tabelas consultar.
+  let skipAssets = origem === "page";
+  let skipPages = origem === "asset";
+
   if (tipo && tipo !== "todos") {
-    assetWhere.tipo = tipo;
-    pageWhere.tipo = tipo;
+    if (tipo === "PAGINA" || tipo === "PERFIL") {
+      // Página/Perfil = categoria da Page (BMs nunca são página/perfil).
+      pageWhere.categoria = tipo;
+      skipAssets = true;
+    } else {
+      // BM / CONTA_ANUNCIO / KIT = campo `tipo` do Asset (páginas não têm).
+      assetWhere.tipo = tipo;
+      skipPages = true;
+    }
   }
 
   const [rawAssets, rawPages] = await Promise.all([
-    origem !== "page"
-      ? prisma.asset.findMany({ select: ASSET_SELECT, where: assetWhere })
-      : Promise.resolve([] as AssetRow[]),
-    origem !== "asset"
-      ? prisma.page.findMany({ select: PAGE_SELECT, where: pageWhere })
-      : Promise.resolve([] as PageRow[]),
+    skipAssets
+      ? Promise.resolve([] as AssetRow[])
+      : prisma.asset.findMany({ select: ASSET_SELECT, where: assetWhere }),
+    skipPages
+      ? Promise.resolve([] as PageRow[])
+      : prisma.page.findMany({ select: PAGE_SELECT, where: pageWhere }),
   ]);
 
   let filtered: AtivoFinanceiro[] = [

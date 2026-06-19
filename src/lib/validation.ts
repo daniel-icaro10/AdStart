@@ -31,6 +31,12 @@ const categoriaEnum = z.enum([
 ]);
 const statusVendaEnum = z.enum(["DISPONIVEL", "RESERVADO", "VENDIDO"]);
 
+// Custo opcional em R$: "" / null → null, número >= 0.
+const custoOpcional = z
+  .union([z.coerce.number().min(0), z.literal(""), z.null(), z.undefined()])
+  .transform((v) => (v === "" || v == null ? null : v))
+  .nullable();
+
 // Editor de BM em texto livre + ícone (estilo Notion).
 export const assetSchema = z.object({
   titulo: z.string().trim().min(1, "Informe o título").max(120),
@@ -39,6 +45,8 @@ export const assetSchema = z.object({
   statusVenda: statusVendaEnum,
   destaque: z.boolean().default(false),
   conteudo: z.string().max(8000).optional().default(""),
+  // custo de aquisição (R$) — quanto você pagou; alimenta o financeiro.
+  custoAquisicao: custoOpcional,
   // preço de venda (R$). Vazio/ inválido → 0.
   valor: z.coerce.number().min(0).catch(0).default(0),
   // imagens: data URLs (base64), no máximo 3.
@@ -66,6 +74,8 @@ export const pageSchema = z.object({
   valor: z.coerce.number().min(0, "Valor inválido"),
   destaque: z.boolean().default(false),
   conteudo: z.string().max(8000).optional().default(""),
+  // custo de aquisição (R$) — alimenta o financeiro.
+  custoAquisicao: custoOpcional,
   // imagens: data URLs (base64), no máximo 3.
   imagens: z.array(z.string()).max(3).optional().default([]),
 });
