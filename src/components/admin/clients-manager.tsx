@@ -9,7 +9,7 @@ import {
   KeyRound,
   Phone,
   BellRing,
-  CircleCheck,
+  CircleDollarSign,
   Loader2,
 } from "lucide-react";
 
@@ -30,7 +30,7 @@ import {
   deleteClient,
   dispararAvisosCobranca,
   enviarAvisoCliente,
-  marcarFaturaPaga,
+  registrarPagamento,
 } from "@/app/admin/actions";
 import { formatCurrency } from "@/lib/format";
 import type { ClientWithPlan } from "@/types";
@@ -77,6 +77,19 @@ const TONE_CLASS: Record<Tone, string> = {
   muted: "text-muted-foreground",
 };
 
+/** Avança uma data em 1 mês (UTC), mantendo o dia (clamp no fim do mês). */
+function avancarUmMes(d: Date): Date {
+  const dia = d.getUTCDate();
+  const r = new Date(d);
+  r.setUTCDate(1);
+  r.setUTCMonth(r.getUTCMonth() + 1);
+  const ultimoDia = new Date(
+    Date.UTC(r.getUTCFullYear(), r.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  r.setUTCDate(Math.min(dia, ultimoDia));
+  return r;
+}
+
 /**
  * CRM simples de aluguéis: board de clientes com vencimento, plano e status.
  * Cada card abre um painel de edição (modal); "Novo cliente" abre em branco.
@@ -94,15 +107,23 @@ export function ClientsManager({
     undefined,
   );
 
-  const isPago = (c: ClientWithPlan) =>
-    c.pagoVencimentoEm != null &&
-    c.dataVencimento != null &&
-    new Date(c.pagoVencimentoEm).getTime() ===
-      new Date(c.dataVencimento).getTime();
-
-  const togglePago = async (e: React.MouseEvent, c: ClientWithPlan) => {
+  const registrarPago = async (e: React.MouseEvent, c: ClientWithPlan) => {
     e.stopPropagation();
-    const r = await marcarFaturaPaga(c.id, !isPago(c));
+    if (!c.dataVencimento) {
+      window.alert("Defina uma data de vencimento antes de registrar o pagamento.");
+      return;
+    }
+    const prox = avancarUmMes(new Date(c.dataVencimento));
+    const proxStr = prox.toLocaleDateString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+    });
+    if (
+      !window.confirm(
+        `Registrar pagamento de ${c.nome}?\nO vencimento avança para ${proxStr} e lança "pago" na planilha.`,
+      )
+    )
+      return;
+    const r = await registrarPagamento(c.id);
     if (r.ok) router.refresh();
     else window.alert("Erro: " + r.error);
   };
@@ -176,21 +197,12 @@ export function ClientsManager({
         >
           <button
             type="button"
-            aria-label={isPago(c) ? "Desmarcar fatura paga" : "Marcar fatura paga"}
-            title={
-              isPago(c)
-                ? "Fatura paga — clique para desmarcar"
-                : "Marcar fatura como paga (não envia aviso)"
-            }
-            onClick={(e) => togglePago(e, c)}
-            className={cn(
-              "rounded-md p-1.5 hover:bg-accent",
-              isPago(c)
-                ? "text-positive"
-                : "text-muted-foreground hover:text-foreground",
-            )}
+            aria-label="Registrar pagamento"
+            title="Registrar pagamento (avança o vencimento +1 mês)"
+            onClick={(e) => registrarPago(e, c)}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-positive"
           >
-            <CircleCheck className="h-4 w-4" />
+            <CircleDollarSign className="h-4 w-4" />
           </button>
           <button
             type="button"
@@ -215,12 +227,6 @@ export function ClientsManager({
             <KeyRound className="h-3 w-3" />
             {c.plan?.nome ?? "Sem plano"}
           </Badge>
-          {isPago(c) && (
-            <Badge className="gap-1 border border-positive/30 bg-positive/15 text-positive">
-              <CircleCheck className="h-3 w-3" />
-              Pago
-            </Badge>
-          )}
         </div>
 
         <h3 className="mt-3 font-semibold leading-snug">{c.nome}</h3>
