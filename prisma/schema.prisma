@@ -102,8 +102,10 @@ model Page {
   valor      Float
   destaque   Boolean @default(false)
   conteudo   String? // descrição em texto livre (estilo Notion, igual à BM)
+  quantidade Int     @default(1) // unidades em estoque (combos de página/perfil)
 
   imagens PageImage[] // imagens exibidas no modal de detalhes (até 3)
+  vendas  Sale[] // vendas de unidades (cada unidade vendida = 1 registro)
 
   // ─── Campos financeiros ─────────────────────────────────────────────────
   /// Tipo do ativo para fins financeiros: "PERFIL" | "PAGINA"
@@ -136,6 +138,22 @@ model PageImage {
   page   Page   @relation(fields: [pageId], references: [id], onDelete: Cascade)
   data   String // data URL (base64)
   ordem  Int    @default(0)
+}
+
+/// Venda de UMA unidade de uma página/perfil (combos). Cada unidade = 1 registro,
+/// para o financeiro contar cada venda no período correto.
+model Sale {
+  id        String   @id @default(cuid())
+  pageId    String
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  preco     Float // preço de venda da unidade (R$)
+  custo     Float? // custo da unidade (R$), copiado do ativo na venda
+  comprador String?
+  data      DateTime // data da venda
+  createdAt DateTime @default(now())
+
+  @@index([data])
+  @@index([pageId])
 }
 
 /// Despesa operacional que não é compra de ativo mas impacta o lucro real.

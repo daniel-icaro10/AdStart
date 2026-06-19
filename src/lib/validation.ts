@@ -76,6 +76,8 @@ export const pageSchema = z.object({
   conteudo: z.string().max(8000).optional().default(""),
   // custo de aquisição (R$) — alimenta o financeiro.
   custoAquisicao: custoOpcional,
+  // unidades em estoque (combos de página/perfil). Vazio/ inválido → 1.
+  quantidade: z.coerce.number().int().min(0).catch(1).default(1),
   // imagens: data URLs (base64), no máximo 3.
   imagens: z.array(z.string()).max(3).optional().default([]),
 });

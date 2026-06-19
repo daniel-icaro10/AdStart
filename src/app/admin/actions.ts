@@ -173,6 +173,7 @@ export async function createPage(input: unknown): Promise<ActionResult> {
       conteudo: data.conteudo || null,
       custoAquisicao: data.custoAquisicao,
       moedaCusto: data.custoAquisicao != null ? "BRL" : null,
+      quantidade: data.quantidade,
       dataEntrada: new Date(), // entrou no estoque agora
       imagens: {
         create: (data.imagens ?? []).map((url, i) => ({ data: url, ordem: i })),
@@ -208,6 +209,7 @@ export async function updatePage(
         conteudo: data.conteudo || null,
         custoAquisicao: data.custoAquisicao,
         moedaCusto: data.custoAquisicao != null ? "BRL" : null,
+        quantidade: data.quantidade,
         imagens: {
           create: (data.imagens ?? []).map((url, i) => ({ data: url, ordem: i })),
         },

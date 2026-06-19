@@ -22,24 +22,20 @@ const PUBLIC_PAGE_SELECT = {
 
 /**
  * Páginas/Perfis ativos do catálogo público (por categoria). Mostra apenas
- * DISPONÍVEL/RESERVADO — vendidos vão para a aba "Vendidos"; perdidos, nunca.
+ * DISPONÍVEL/RESERVADO COM unidades em estoque (quantidade > 0). A contagem de
+ * unidades nunca é exposta na vitrine.
  */
 export function getCatalogPages(
   categoria: CategoriaPagina = "PAGINA",
 ): Promise<PagePublic[]> {
   return prisma.page.findMany({
-    where: { categoria, status: { in: ["DISPONIVEL", "RESERVADO"] } },
+    where: {
+      categoria,
+      status: { in: ["DISPONIVEL", "RESERVADO"] },
+      quantidade: { gt: 0 },
+    },
     orderBy: [{ destaque: "desc" }, { valor: "desc" }, { createdAt: "desc" }],
     // Allowlist: nenhum campo financeiro sai para a vitrine.
-    select: PUBLIC_PAGE_SELECT,
-  });
-}
-
-/** Vendidos (páginas + perfis), para a aba "Vendidos". Mais recentes primeiro. */
-export function getVendidosPages(): Promise<PagePublic[]> {
-  return prisma.page.findMany({
-    where: { status: "VENDIDO" },
-    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
     select: PUBLIC_PAGE_SELECT,
   });
 }

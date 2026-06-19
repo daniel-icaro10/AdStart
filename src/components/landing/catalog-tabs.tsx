@@ -30,7 +30,6 @@ export function CatalogTabs({
   pages,
   perfis,
   vendidosAssets,
-  vendidosPages,
   rentals,
   order,
 }: {
@@ -38,7 +37,6 @@ export function CatalogTabs({
   pages: PagePublic[];
   perfis: PagePublic[];
   vendidosAssets: AssetWithContas[];
-  vendidosPages: PagePublic[];
   rentals: RentalPlan[];
   order?: Categoria[];
 }) {
@@ -120,7 +118,7 @@ export function CatalogTabs({
       ) : view === "PERFIS" ? (
         <PagesSection pages={perfis} variant="perfil" />
       ) : view === "VENDIDOS" ? (
-        <VendidosSection assets={vendidosAssets} pages={vendidosPages} />
+        <VendidosSection assets={vendidosAssets} />
       ) : (
         <RentalsSection plans={rentals} />
       )}

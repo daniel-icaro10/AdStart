@@ -88,6 +88,7 @@ const PAGE_SELECT = {
   id: true,
   nome: true,
   categoria: true,
+  quantidade: true,
   tipo: true,
   fornecedor: true,
   status: true,
@@ -157,18 +158,68 @@ function mapPage(p: PageRow): AtivoFinanceiro {
     motivoPerda: p.motivoPerda,
     observacoes: p.observacoes,
     taxaCambioNaDia: decimalToNumber(p.taxaCambioNaDia),
+    quantidade: p.quantidade,
+  };
+}
+
+// Venda de unidade (combos de página/perfil). Cada Sale = uma venda no financeiro.
+const SALE_SELECT = {
+  id: true,
+  preco: true,
+  custo: true,
+  comprador: true,
+  data: true,
+  page: { select: { nome: true, categoria: true, fornecedor: true } },
+} as const satisfies Prisma.SaleSelect;
+
+type SaleRow = Prisma.SaleGetPayload<{ select: typeof SALE_SELECT }>;
+
+function mapSale(s: SaleRow): AtivoFinanceiro {
+  return {
+    id: s.id,
+    origem: "page",
+    grupo: s.page.categoria === "PERFIL" ? "PERFIL" : "PAGINA",
+    titulo: s.page.nome,
+    tipo: null,
+    fornecedor: s.page.fornecedor,
+    statusVenda: "VENDIDO",
+    custoAquisicao: s.custo,
+    moedaCusto: "BRL",
+    dataEntrada: null,
+    precoPrevisto: null,
+    precoVenda: s.preco,
+    moedaVenda: "BRL",
+    taxaVendaNaDia: null,
+    comprador: s.comprador,
+    dataSaida: s.data,
+    motivoPerda: null,
+    observacoes: null,
+    taxaCambioNaDia: null,
+    ehVenda: true,
   };
 }
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
-/** Todos os ativos financeiros (Asset + Page) em paralelo. */
+/**
+ * Todos os ativos financeiros: BMs (Asset) + páginas/perfis COM estoque
+ * (quantidade > 0, como estoque) + cada venda de unidade (Sale → VENDIDO).
+ * Páginas esgotadas (quantidade 0) saem do estoque; suas vendas vêm dos Sales.
+ */
 export async function getAtivosFinanceiros(): Promise<AtivoFinanceiro[]> {
-  const [assets, pages] = await Promise.all([
+  const [assets, pages, sales] = await Promise.all([
     prisma.asset.findMany({ select: ASSET_SELECT }),
-    prisma.page.findMany({ select: PAGE_SELECT }),
+    prisma.page.findMany({
+      select: PAGE_SELECT,
+      where: { quantidade: { gt: 0 } },
+    }),
+    prisma.sale.findMany({ select: SALE_SELECT }),
   ]);
-  return [...assets.map(mapAsset), ...pages.map(mapPage)];
+  return [
+    ...assets.map(mapAsset),
+    ...pages.map(mapPage),
+    ...sales.map(mapSale),
+  ];
 }
 
 /** Taxa USD→BRL salva no Setting. Retorna TAXA_CAMBIO_DEFAULT se ausente. */
@@ -357,18 +408,41 @@ export async function getAtivosFinanceirosPaginados(
     }
   }
 
-  const [rawAssets, rawPages] = await Promise.all([
+  // Páginas/perfis aparecem como estoque só com unidades (quantidade > 0).
+  pageWhere.quantidade = { gt: 0 };
+
+  // Vendas de unidade (Sale): entram conforme origem/tipo/status.
+  const saleWhere: Prisma.SaleWhereInput = {};
+  let skipSales = origem === "asset"; // vendas são de páginas/perfis
+  if (status && status !== "todos" && status !== "VENDIDO") skipSales = true;
+  if (tipo && tipo !== "todos") {
+    if (tipo === "PAGINA" || tipo === "PERFIL") saleWhere.page = { categoria: tipo };
+    else skipSales = true; // BM/CONTA/KIT não são vendas de página
+  }
+
+  // Período aplicado no banco: entrada (estoque) ou data da venda (Sale).
+  if (periodo) {
+    assetWhere.dataEntrada = { gte: periodo.inicio, lte: periodo.fim };
+    pageWhere.dataEntrada = { gte: periodo.inicio, lte: periodo.fim };
+    saleWhere.data = { gte: periodo.inicio, lte: periodo.fim };
+  }
+
+  const [rawAssets, rawPages, rawSales] = await Promise.all([
     skipAssets
       ? Promise.resolve([] as AssetRow[])
       : prisma.asset.findMany({ select: ASSET_SELECT, where: assetWhere }),
     skipPages
       ? Promise.resolve([] as PageRow[])
       : prisma.page.findMany({ select: PAGE_SELECT, where: pageWhere }),
+    skipSales
+      ? Promise.resolve([] as SaleRow[])
+      : prisma.sale.findMany({ select: SALE_SELECT, where: saleWhere }),
   ]);
 
   let filtered: AtivoFinanceiro[] = [
     ...rawAssets.map(mapAsset),
     ...rawPages.map(mapPage),
+    ...rawSales.map(mapSale),
   ];
 
   if (q?.trim()) {
@@ -387,19 +461,10 @@ export async function getAtivosFinanceirosPaginados(
     );
   }
 
-  if (periodo) {
-    filtered = filtered.filter(
-      (a) =>
-        a.dataEntrada !== null &&
-        a.dataEntrada >= periodo.inicio &&
-        a.dataEntrada <= periodo.fim,
-    );
-  }
-
-  // Mais recente primeiro; sem dataEntrada vai para o final
+  // Mais recente primeiro (entrada para estoque, data da venda para Sales).
   filtered.sort((a, b) => {
-    const ta = a.dataEntrada?.getTime() ?? -1;
-    const tb = b.dataEntrada?.getTime() ?? -1;
+    const ta = (a.dataSaida ?? a.dataEntrada)?.getTime() ?? -1;
+    const tb = (b.dataSaida ?? b.dataEntrada)?.getTime() ?? -1;
     return tb - ta;
   });
 

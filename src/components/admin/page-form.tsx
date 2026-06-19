@@ -28,6 +28,7 @@ interface PageFormValues {
   status: StatusVenda;
   valor: string;
   custoAquisicao: string;
+  quantidade: string;
   destaque: boolean;
   conteudo: string;
   imagens: string[];
@@ -42,6 +43,7 @@ function toDefaults(page?: PageWithImages): PageFormValues {
     status: (page?.status as StatusVenda) ?? "DISPONIVEL",
     valor: s(page?.valor),
     custoAquisicao: page?.custoAquisicao != null ? String(page.custoAquisicao) : "",
+    quantidade: page?.quantidade != null ? String(page.quantidade) : "1",
     destaque: page?.destaque ?? false,
     conteudo: page?.conteudo ?? "",
     imagens: page?.imagens?.map((i) => i.data) ?? [],
@@ -180,6 +182,24 @@ export function PageForm({
             placeholder="Quanto você pagou"
             {...register("custoAquisicao")}
           />
+        </div>
+      </div>
+
+      {/* unidades em estoque (combos) */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Unidades em estoque</Label>
+          <Input
+            type="number"
+            step="1"
+            min="0"
+            placeholder="Ex: 10"
+            {...register("quantidade")}
+          />
+          <p className="text-xs text-muted-foreground">
+            Quantas unidades iguais você tem (combo). Ao vender, baixa 1; some da
+            vitrine quando zera. A contagem não aparece pro cliente.
+          </p>
         </div>
       </div>
 
