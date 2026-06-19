@@ -58,6 +58,7 @@ import {
   marcarPerdido,
   salvarFinanceiroAtivo,
   reverterStatus,
+  estornarVenda,
   getAtivoDetalhe,
   type FinanceiroResult,
   type AtivoDetalhe,
@@ -109,6 +110,15 @@ export function AssetsTableClient({
     router.refresh();
   };
 
+  const onEstornar = async (saleId: string) => {
+    if (
+      !window.confirm("Estornar esta venda? A unidade volta para o estoque.")
+    )
+      return;
+    const res = await estornarVenda(saleId);
+    if (res.ok) router.refresh();
+  };
+
   return (
     <div className="space-y-3">
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
@@ -140,26 +150,42 @@ export function AssetsTableClient({
             ) : (
               items.map((a) => {
                 const status = a.statusVenda as StatusVenda;
+                const ehVenda = a.ehVenda === true;
                 const emEstoque =
-                  status === "DISPONIVEL" || status === "RESERVADO";
+                  !ehVenda &&
+                  (status === "DISPONIVEL" || status === "RESERVADO");
                 const margem =
                   a.precoPrevisto != null && a.custoAquisicao != null
                     ? a.precoPrevisto - a.custoAquisicao
                     : null;
+                const grupoLabel =
+                  a.grupo === "BM"
+                    ? "BM"
+                    : a.grupo === "PERFIL"
+                      ? "Perfil"
+                      : "Página";
+                const sub = ehVenda
+                  ? "Venda (unidade)"
+                  : grupoLabel +
+                    (a.grupo !== "BM" && a.quantidade != null
+                      ? ` · ${a.quantidade} un.`
+                      : "");
                 return (
-                  <TableRow key={`${a.origem}-${a.id}`}>
+                  <TableRow key={`${a.ehVenda ? "sale" : a.origem}-${a.id}`}>
                     <TableCell>
-                      <button
-                        type="button"
-                        onClick={() => setModal({ kind: "detalhe", ativo: a })}
-                        title="Ver detalhes do ativo"
-                        className="rounded text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        {a.titulo}
-                      </button>
-                      <div className="text-xs text-muted-foreground">
-                        {a.origem === "asset" ? "BM" : "Página"}
-                      </div>
+                      {ehVenda ? (
+                        <div className="font-medium">{a.titulo}</div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setModal({ kind: "detalhe", ativo: a })}
+                          title="Ver detalhes do ativo"
+                          className="rounded text-left font-medium hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          {a.titulo}
+                        </button>
+                      )}
+                      <div className="text-xs text-muted-foreground">{sub}</div>
                     </TableCell>
                     <TableCell className="text-xs">
                       {a.tipo ? TIPO_LABELS[a.tipo] ?? a.tipo : "—"}
@@ -190,47 +216,61 @@ export function AssetsTableClient({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">
-                        {emEstoque ? (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Marcar como vendido"
-                              title="Vender"
-                              onClick={() => setModal({ kind: "vender", ativo: a })}
-                            >
-                              <DollarSign className="h-4 w-4 text-positive" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Marcar como perdido"
-                              title="Perder"
-                              onClick={() => setModal({ kind: "perder", ativo: a })}
-                            >
-                              <AlertTriangle className="h-4 w-4 text-negative" />
-                            </Button>
-                          </>
-                        ) : (
+                        {ehVenda ? (
                           <Button
                             variant="ghost"
                             size="icon"
-                            aria-label="Reverter status"
-                            title="Reverter para estoque"
-                            onClick={() => setModal({ kind: "reverter", ativo: a })}
+                            aria-label="Estornar venda"
+                            title="Estornar venda (devolve 1 ao estoque)"
+                            onClick={() => onEstornar(a.id)}
                           >
                             <Undo2 className="h-4 w-4" />
                           </Button>
+                        ) : (
+                          <>
+                            {emEstoque ? (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  aria-label="Marcar como vendido"
+                                  title="Vender"
+                                  onClick={() => setModal({ kind: "vender", ativo: a })}
+                                >
+                                  <DollarSign className="h-4 w-4 text-positive" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  aria-label="Marcar como perdido"
+                                  title="Perder"
+                                  onClick={() => setModal({ kind: "perder", ativo: a })}
+                                >
+                                  <AlertTriangle className="h-4 w-4 text-negative" />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Reverter status"
+                                title="Reverter para estoque"
+                                onClick={() => setModal({ kind: "reverter", ativo: a })}
+                              >
+                                <Undo2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Editar financeiro"
+                              title="Editar dados financeiros"
+                              onClick={() => setModal({ kind: "editar", ativo: a })}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Editar financeiro"
-                          title="Editar dados financeiros"
-                          onClick={() => setModal({ kind: "editar", ativo: a })}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -355,6 +395,9 @@ function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
   const [precoVenda, setPreco] = React.useState("");
   const [comprador, setComprador] = React.useState("");
   const [dataSaida, setData] = React.useState(hoje());
+  const ehPagina = ativo.origem === "page";
+  const maxUn = ativo.quantidade ?? 1;
+  const [unidades, setUnidades] = React.useState("1");
 
   return (
     <form
@@ -365,6 +408,7 @@ function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
             origem: ativo.origem,
             id: ativo.id,
             precoVenda,
+            unidades,
             comprador,
             dataSaida,
           },
@@ -374,21 +418,43 @@ function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
       className="space-y-4"
     >
       <DialogHeader>
-        <DialogTitle>Marcar como vendido</DialogTitle>
+        <DialogTitle>
+          {ehPagina ? "Registrar venda" : "Marcar como vendido"}
+        </DialogTitle>
       </DialogHeader>
-      <p className="text-sm text-muted-foreground">{ativo.titulo}</p>
-      <div className="space-y-1.5">
-        <Label>Preço de venda (R$) *</Label>
-        <Input
-          type="number"
-          step="0.01"
-          min="0"
-          required
-          autoFocus
-          value={precoVenda}
-          onChange={(e) => setPreco(e.target.value)}
-          placeholder="Ex: 1500"
-        />
+      <p className="text-sm text-muted-foreground">
+        {ativo.titulo}
+        {ehPagina ? ` · ${maxUn} em estoque` : ""}
+      </p>
+      <div className={ehPagina ? "grid grid-cols-[1fr_120px] gap-3" : "space-y-1.5"}>
+        <div className="space-y-1.5">
+          <Label>
+            {ehPagina ? "Preço por unidade (R$) *" : "Preço de venda (R$) *"}
+          </Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            required
+            autoFocus
+            value={precoVenda}
+            onChange={(e) => setPreco(e.target.value)}
+            placeholder="Ex: 1500"
+          />
+        </div>
+        {ehPagina && (
+          <div className="space-y-1.5">
+            <Label>Unidades</Label>
+            <Input
+              type="number"
+              min="1"
+              max={maxUn}
+              step="1"
+              value={unidades}
+              onChange={(e) => setUnidades(e.target.value)}
+            />
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
@@ -401,7 +467,11 @@ function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
         </div>
       </div>
       <ErrorMsg msg={error} />
-      <Footer pending={pending} onCancel={onDone} label="Confirmar venda" />
+      <Footer
+        pending={pending}
+        onCancel={onDone}
+        label={ehPagina ? "Registrar venda" : "Confirmar venda"}
+      />
     </form>
   );
 }

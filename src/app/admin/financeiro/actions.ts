@@ -221,13 +221,46 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
-  const { origem, id, precoVenda, comprador, dataSaida, observacoes } =
+  const { origem, id, precoVenda, unidades, comprador, dataSaida, observacoes } =
     parsed.data;
+  const data = dataSaida ?? new Date();
 
+  // Páginas/Perfis: venda por UNIDADE (combos). Cria N vendas + baixa o estoque.
+  if (origem === "page") {
+    const page = await prisma.page.findUnique({
+      where: { id },
+      select: { quantidade: true, custoAquisicao: true },
+    });
+    if (!page) return { ok: false, error: "Ativo não encontrado." };
+    const qtd = Math.min(unidades, page.quantidade);
+    if (qtd < 1) {
+      return { ok: false, error: "Sem unidades em estoque para vender." };
+    }
+    const custo =
+      page.custoAquisicao != null ? Number(page.custoAquisicao) : null;
+    await prisma.$transaction([
+      prisma.sale.createMany({
+        data: Array.from({ length: qtd }, () => ({
+          pageId: id,
+          preco: precoVenda,
+          custo,
+          comprador: comprador || null,
+          data,
+        })),
+      }),
+      prisma.page.update({
+        where: { id },
+        data: { quantidade: { decrement: qtd } },
+      }),
+    ]);
+    revalidate();
+    return { ok: true };
+  }
+
+  // BMs (asset): marca VENDIDO com guarda atômica → vai para a aba "Vendidos".
   const estado = await getEstadoAtivo(origem, id);
   if (!estado) return { ok: false, error: "Ativo não encontrado." };
 
-  // Guarda atômica: só vende se ainda estiver em estoque (não sobrescreve venda/perda).
   const count = await updateAtivoGuarded(
     origem,
     id,
@@ -237,7 +270,7 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
       moedaVenda: "BRL",
       taxaVendaNaDia: null,
       comprador: comprador || null,
-      dataSaida: dataSaida ?? new Date(),
+      dataSaida: data,
       ...(observacoes ? { observacoes } : {}),
     },
     "VENDIDO",
@@ -248,6 +281,25 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
       error: `Só é possível vender ativos em estoque (status atual: ${estado.status}).`,
     };
   }
+  revalidate();
+  return { ok: true };
+}
+
+/** Estorna uma venda de unidade (Sale): apaga o registro e devolve 1 ao estoque. */
+export async function estornarVenda(saleId: string): Promise<FinanceiroResult> {
+  await requireAdmin();
+  const sale = await prisma.sale.findUnique({
+    where: { id: saleId },
+    select: { pageId: true },
+  });
+  if (!sale) return { ok: false, error: "Venda não encontrada." };
+  await prisma.$transaction([
+    prisma.sale.delete({ where: { id: saleId } }),
+    prisma.page.update({
+      where: { id: sale.pageId },
+      data: { quantidade: { increment: 1 } },
+    }),
+  ]);
   revalidate();
   return { ok: true };
 }

@@ -38,7 +38,8 @@ const PUBLIC_ASSET_SELECT = {
 export async function getCatalogAssets(): Promise<AssetWithContas[]> {
   return prisma.asset.findMany({
     where: { statusVenda: { in: ["DISPONIVEL", "RESERVADO"] } },
-    orderBy: [{ destaque: "desc" }, { valor: "desc" }, { createdAt: "desc" }],
+    // Escada de preços: da mais barata (topo) à mais cara (rolando).
+    orderBy: [{ valor: "asc" }, { createdAt: "desc" }],
     // Allowlist: só campos públicos saem para a vitrine (sem dados financeiros).
     select: PUBLIC_ASSET_SELECT,
   });

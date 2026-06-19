@@ -37,6 +37,7 @@ interface AssetFormValues {
   categoria: Categoria;
   statusVenda: StatusVenda;
   tier: string;
+  custoAquisicao: string;
   valor: string;
   destaque: boolean;
   conteudo: string;
@@ -50,6 +51,7 @@ function toDefaults(asset?: AssetWithDetails): AssetFormValues {
     categoria: (asset?.categoria as Categoria) ?? "DOLAR",
     statusVenda: (asset?.statusVenda as StatusVenda) ?? "DISPONIVEL",
     tier: asset?.tier ? String(asset.tier) : "NONE",
+    custoAquisicao: asset?.custoAquisicao != null ? String(asset.custoAquisicao) : "",
     valor: asset?.valor ? String(asset.valor) : "",
     destaque: asset?.destaque ?? false,
     conteudo: asset?.conteudo ?? "",
@@ -214,7 +216,7 @@ export function AssetForm({ asset, onSuccess, onCancel }: AssetFormProps) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Preço (R$)</Label>
+          <Label>Preço de venda (R$)</Label>
           <Input
             type="number"
             step="0.01"
@@ -222,6 +224,23 @@ export function AssetForm({ asset, onSuccess, onCancel }: AssetFormProps) {
             placeholder="Ex: 4800"
             {...register("valor")}
           />
+        </div>
+      </div>
+
+      {/* custo de aquisição (alimenta o financeiro) */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Custo de aquisição (R$)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="Quanto você pagou"
+            {...register("custoAquisicao")}
+          />
+          <p className="text-xs text-muted-foreground">
+            Opcional — alimenta o financeiro (lucro, ROI, estoque).
+          </p>
         </div>
       </div>
 

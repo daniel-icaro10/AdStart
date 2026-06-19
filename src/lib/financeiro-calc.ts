@@ -58,6 +58,10 @@ export interface AtivoFinanceiro {
   observacoes: string | null;
   /** Taxa USD→BRL na data da transação. null = usar taxaAtual do Setting. */
   taxaCambioNaDia: number | null;
+  /** true quando a linha é uma venda de UNIDADE (Sale), não um item em estoque. */
+  ehVenda?: boolean;
+  /** Unidades em estoque (combos de página/perfil). */
+  quantidade?: number | null;
 }
 
 export interface CustoSerializado {
