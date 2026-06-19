@@ -475,27 +475,69 @@ export async function enviarAvisoCliente(
   }
 }
 
+/** Avança uma data em 1 mês (em UTC), mantendo o dia (com clamp no fim do mês). */
+function avancarUmMes(d: Date): Date {
+  const dia = d.getUTCDate();
+  const r = new Date(d);
+  r.setUTCDate(1);
+  r.setUTCMonth(r.getUTCMonth() + 1);
+  const ultimoDia = new Date(
+    Date.UTC(r.getUTCFullYear(), r.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  r.setUTCDate(Math.min(dia, ultimoDia));
+  return r;
+}
+
 /**
- * Marca/desmarca a fatura do vencimento atual como paga. Quando paga, a
- * automação não envia aviso para esse vencimento.
+ * Registra o pagamento do mês: avança o vencimento +1 mês (reabrindo o ciclo de
+ * avisos) e lança uma linha "pago" na planilha do cliente.
  */
-export async function marcarFaturaPaga(
+export async function registrarPagamento(
   clientId: string,
-  paga: boolean,
 ): Promise<ActionResult> {
   await requireAdmin();
   const c = await prisma.client.findUnique({
     where: { id: clientId },
-    select: { dataVencimento: true },
+    select: { dataVencimento: true, valorMensal: true },
   });
   if (!c) return { ok: false, error: "Cliente não encontrado." };
-  if (paga && !c.dataVencimento) {
-    return { ok: false, error: "Cliente sem data de vencimento." };
+  if (!c.dataVencimento) {
+    return {
+      ok: false,
+      error: "Defina uma data de vencimento antes de registrar o pagamento.",
+    };
   }
-  await prisma.client.update({
-    where: { id: clientId },
-    data: { pagoVencimentoEm: paga ? c.dataVencimento : null },
+
+  const venc = c.dataVencimento;
+  const proximoVenc = avancarUmMes(venc);
+  const mesPago = venc.toLocaleDateString("pt-BR", {
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Sao_Paulo",
   });
+  const ordem = await prisma.clientEntry.count({ where: { clientId } });
+
+  await prisma.$transaction([
+    prisma.client.update({
+      where: { id: clientId },
+      data: {
+        dataVencimento: proximoVenc,
+        avisoPreEm: null,
+        avisoDiaEm: null,
+        pagoVencimentoEm: null,
+      },
+    }),
+    prisma.clientEntry.create({
+      data: {
+        clientId,
+        data: new Date(),
+        descricao: `Mensalidade ${mesPago}`,
+        valor: c.valorMensal,
+        status: "pago",
+        ordem,
+      },
+    }),
+  ]);
   revalidateClients();
   return { ok: true };
 }
