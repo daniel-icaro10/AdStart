@@ -2,7 +2,15 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Users, CalendarClock, KeyRound, Phone } from "lucide-react";
+import {
+  Plus,
+  Users,
+  CalendarClock,
+  KeyRound,
+  Phone,
+  BellRing,
+  Loader2,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,7 +25,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ClientForm } from "@/components/admin/client-form";
 import { ClientLedger } from "@/components/admin/client-ledger";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { deleteClient } from "@/app/admin/actions";
+import { deleteClient, dispararAvisosCobranca } from "@/app/admin/actions";
 import { formatCurrency } from "@/lib/format";
 import type { ClientWithPlan } from "@/types";
 import type { RentalPlan } from "@prisma/client";
@@ -79,6 +87,22 @@ export function ClientsManager({
   const [current, setCurrent] = React.useState<ClientWithPlan | undefined>(
     undefined,
   );
+
+  const [avisando, setAvisando] = React.useState(false);
+  const enviarAvisos = async () => {
+    setAvisando(true);
+    const r = await dispararAvisosCobranca();
+    setAvisando(false);
+    if (!r.ok) {
+      window.alert("Erro ao enviar avisos: " + r.error);
+      return;
+    }
+    const base = `${r.enviados} mensagem(ns) enviada(s) para ${r.clientes} cobrança(s) a vencer.`;
+    window.alert(
+      r.erros.length ? `${base}\n\nFalhas:\n- ${r.erros.join("\n- ")}` : base,
+    );
+    router.refresh();
+  };
 
   const openNew = () => {
     setCurrent(undefined);
@@ -166,10 +190,25 @@ export function ClientsManager({
             {clients.length} cliente(s). Clique em um card para editar.
           </p>
         </div>
-        <Button onClick={openNew}>
-          <Plus className="h-4 w-4" />
-          Novo cliente
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={enviarAvisos}
+            disabled={avisando}
+            title="Envia agora os avisos de cobrança a vencer (WhatsApp)"
+          >
+            {avisando ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <BellRing className="h-4 w-4" />
+            )}
+            Enviar avisos
+          </Button>
+          <Button onClick={openNew}>
+            <Plus className="h-4 w-4" />
+            Novo cliente
+          </Button>
+        </div>
       </div>
 
       {clients.length === 0 ? (

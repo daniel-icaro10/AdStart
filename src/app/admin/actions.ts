@@ -13,6 +13,7 @@ import {
   clientEntrySchema,
 } from "@/lib/validation";
 import { CATEGORIA_ORDER } from "@/lib/constants";
+import { enviarAvisosCobranca } from "@/lib/cobrancas";
 import { CATEGORY_ORDER_KEY } from "@/lib/settings";
 
 export type ActionResult =
@@ -441,6 +442,21 @@ export async function deleteClientEntry(id: string): Promise<ActionResult> {
   await prisma.clientEntry.delete({ where: { id } });
   revalidateClients();
   return { ok: true };
+}
+
+export type AvisosResult =
+  | { ok: true; clientes: number; enviados: number; erros: string[] }
+  | { ok: false; error: string };
+
+/** Dispara manualmente os avisos de cobrança por WhatsApp (mesma lógica do cron). */
+export async function dispararAvisosCobranca(): Promise<AvisosResult> {
+  await requireAdmin();
+  try {
+    const r = await enviarAvisosCobranca();
+    return { ok: true, ...r };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 }
 
 /** Salva o bloco de anotações livres do cliente (campo observacoes). */

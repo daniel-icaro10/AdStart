@@ -218,6 +218,9 @@ model Client {
   dataVencimento DateTime? // próximo vencimento
   status         String      @default("ATIVO") // "ATIVO" | "PAUSADO" | "CANCELADO"
   observacoes    String? // anotações livres sobre o cliente
+  // Data de vencimento para a qual o último aviso de cobrança já foi enviado
+  // (idempotência — evita reenviar o mesmo aviso todo dia).
+  avisoVencimentoEm DateTime?
 
   entries ClientEntry[] // linhas da planilha do cliente
 
