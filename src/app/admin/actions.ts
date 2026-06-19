@@ -475,6 +475,31 @@ export async function enviarAvisoCliente(
   }
 }
 
+/**
+ * Marca/desmarca a fatura do vencimento atual como paga. Quando paga, a
+ * automação não envia aviso para esse vencimento.
+ */
+export async function marcarFaturaPaga(
+  clientId: string,
+  paga: boolean,
+): Promise<ActionResult> {
+  await requireAdmin();
+  const c = await prisma.client.findUnique({
+    where: { id: clientId },
+    select: { dataVencimento: true },
+  });
+  if (!c) return { ok: false, error: "Cliente não encontrado." };
+  if (paga && !c.dataVencimento) {
+    return { ok: false, error: "Cliente sem data de vencimento." };
+  }
+  await prisma.client.update({
+    where: { id: clientId },
+    data: { pagoVencimentoEm: paga ? c.dataVencimento : null },
+  });
+  revalidateClients();
+  return { ok: true };
+}
+
 /** Salva o bloco de anotações livres do cliente (campo observacoes). */
 export async function updateClientNotes(
   clientId: string,
