@@ -9,6 +9,7 @@ import {
   KeyRound,
   Phone,
   BellRing,
+  CircleCheck,
   Loader2,
 } from "lucide-react";
 
@@ -29,6 +30,7 @@ import {
   deleteClient,
   dispararAvisosCobranca,
   enviarAvisoCliente,
+  marcarFaturaPaga,
 } from "@/app/admin/actions";
 import { formatCurrency } from "@/lib/format";
 import type { ClientWithPlan } from "@/types";
@@ -91,6 +93,19 @@ export function ClientsManager({
   const [current, setCurrent] = React.useState<ClientWithPlan | undefined>(
     undefined,
   );
+
+  const isPago = (c: ClientWithPlan) =>
+    c.pagoVencimentoEm != null &&
+    c.dataVencimento != null &&
+    new Date(c.pagoVencimentoEm).getTime() ===
+      new Date(c.dataVencimento).getTime();
+
+  const togglePago = async (e: React.MouseEvent, c: ClientWithPlan) => {
+    e.stopPropagation();
+    const r = await marcarFaturaPaga(c.id, !isPago(c));
+    if (r.ok) router.refresh();
+    else window.alert("Erro: " + r.error);
+  };
 
   const [avisandoId, setAvisandoId] = React.useState<string | null>(null);
   const avisarUm = async (
@@ -161,6 +176,24 @@ export function ClientsManager({
         >
           <button
             type="button"
+            aria-label={isPago(c) ? "Desmarcar fatura paga" : "Marcar fatura paga"}
+            title={
+              isPago(c)
+                ? "Fatura paga — clique para desmarcar"
+                : "Marcar fatura como paga (não envia aviso)"
+            }
+            onClick={(e) => togglePago(e, c)}
+            className={cn(
+              "rounded-md p-1.5 hover:bg-accent",
+              isPago(c)
+                ? "text-positive"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <CircleCheck className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
             aria-label="Enviar aviso"
             title="Enviar aviso de cobrança (WhatsApp) para este cliente"
             disabled={avisandoId === c.id}
@@ -182,6 +215,12 @@ export function ClientsManager({
             <KeyRound className="h-3 w-3" />
             {c.plan?.nome ?? "Sem plano"}
           </Badge>
+          {isPago(c) && (
+            <Badge className="gap-1 border border-positive/30 bg-positive/15 text-positive">
+              <CircleCheck className="h-3 w-3" />
+              Pago
+            </Badge>
+          )}
         </div>
 
         <h3 className="mt-3 font-semibold leading-snug">{c.nome}</h3>

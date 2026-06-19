@@ -1,13 +1,16 @@
 /**
  * Avisos de cobrança por WhatsApp: encontra clientes ATIVOS perto do vencimento
  * e dispara mensagem para o cliente e para a agência (nosso número).
- * Idempotente via Client.avisoVencimentoEm (não reenvia o mesmo aviso).
+ *
+ * Dois lembretes por ciclo: "3 dias antes" (avisoPreEm) e "no dia/vencido"
+ * (avisoDiaEm) — idempotentes por data de vencimento. Clientes com o vencimento
+ * marcado como PAGO (pagoVencimentoEm) não recebem aviso automático.
  */
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/format";
 import { sendWhatsapp, normalizePhone } from "@/lib/whatsapp-send";
 
-/** Dias de antecedência do aviso (configurável por env; default 3). */
+/** Antecedência do aviso "antecipado" (configurável por env; default 3 dias). */
 export const AVISO_DIAS = Number(process.env.AVISO_DIAS_ANTES ?? "3") || 3;
 
 const DIA_MS = 86_400_000;
@@ -20,6 +23,12 @@ export interface CobrancaParaAvisar {
   dataVencimento: Date;
   planoNome: string | null;
   diasAteVencimento: number;
+}
+
+type TipoAviso = "pre" | "dia";
+interface AvisoPendente {
+  cob: CobrancaParaAvisar;
+  tipo: TipoAviso;
 }
 
 function diasAte(d: Date): number {
@@ -40,34 +49,8 @@ function quando(dias: number): string {
   return `há ${-dias} dia(s) (vencida)`;
 }
 
-/**
- * Clientes ATIVO cujo vencimento está a ≤ `dias` dias e que ainda não receberam
- * aviso para essa data de vencimento.
- */
-export async function getCobrancasParaAvisar(
-  dias = AVISO_DIAS,
-): Promise<CobrancaParaAvisar[]> {
-  const cutoff = new Date(Date.now() + dias * DIA_MS);
-  const clientes = await prisma.client.findMany({
-    where: { status: "ATIVO", dataVencimento: { not: null, lte: cutoff } },
-    include: { plan: { select: { nome: true } } },
-  });
-  return clientes
-    .filter((c) => c.dataVencimento != null)
-    .filter(
-      (c) =>
-        c.avisoVencimentoEm == null ||
-        c.avisoVencimentoEm.getTime() !== c.dataVencimento!.getTime(),
-    )
-    .map((c) => ({
-      id: c.id,
-      nome: c.nome,
-      contato: c.contato,
-      valorMensal: c.valorMensal,
-      dataVencimento: c.dataVencimento!,
-      planoNome: c.plan?.nome ?? null,
-      diasAteVencimento: diasAte(c.dataVencimento!),
-    }));
+function mesmaData(a: Date | null, b: Date): boolean {
+  return a != null && a.getTime() === b.getTime();
 }
 
 export function mensagemCliente(c: CobrancaParaAvisar): string {
@@ -81,7 +64,8 @@ export function mensagemCliente(c: CobrancaParaAvisar): string {
       c.diasAteVencimento,
     )} (${fmtData(c.dataVencimento)}).`,
     "",
-    "Qualquer dúvida é só chamar por aqui. 🙌",
+    "Obrigado por continuar com a gente! Estou por aqui para o que precisar.",
+    "Caso já tenha pago, pode desconsiderar este aviso. 😉",
   ].join("\n");
 }
 
@@ -94,58 +78,95 @@ export function mensagemAgencia(c: CobrancaParaAvisar): string {
   )} (${fmtData(c.dataVencimento)}). Contato: ${c.contato ?? "—"}`;
 }
 
+/**
+ * Lembretes a enviar agora: clientes ATIVO, não pagos, no ponto "3 dias antes"
+ * (1..AVISO_DIAS) ou "no dia/vencido" (≤ 0), cada etapa só uma vez por ciclo.
+ */
+export async function getAvisosPendentes(): Promise<AvisoPendente[]> {
+  const clientes = await prisma.client.findMany({
+    where: { status: "ATIVO", dataVencimento: { not: null } },
+    include: { plan: { select: { nome: true } } },
+  });
+
+  const pendentes: AvisoPendente[] = [];
+  for (const c of clientes) {
+    const venc = c.dataVencimento;
+    if (!venc) continue;
+    // pago para este vencimento → não avisa
+    if (mesmaData(c.pagoVencimentoEm, venc)) continue;
+
+    const dias = diasAte(venc);
+    const cob: CobrancaParaAvisar = {
+      id: c.id,
+      nome: c.nome,
+      contato: c.contato,
+      valorMensal: c.valorMensal,
+      dataVencimento: venc,
+      planoNome: c.plan?.nome ?? null,
+      diasAteVencimento: dias,
+    };
+
+    if (dias >= 1 && dias <= AVISO_DIAS && !mesmaData(c.avisoPreEm, venc)) {
+      pendentes.push({ cob, tipo: "pre" });
+    } else if (dias <= 0 && !mesmaData(c.avisoDiaEm, venc)) {
+      pendentes.push({ cob, tipo: "dia" });
+    }
+  }
+  return pendentes;
+}
+
 export interface ResultadoAvisos {
   clientes: number;
   enviados: number;
   erros: string[];
 }
 
-/**
- * Dispara os avisos: para cada cobrança, manda ao cliente e à agência, e marca
- * a data de vencimento como avisada (só se algo foi enviado — falha tenta de novo).
- */
+/** Dispara os lembretes pendentes (cliente + agência) e marca a etapa enviada. */
 export async function enviarAvisosCobranca(): Promise<ResultadoAvisos> {
-  const cobrancas = await getCobrancasParaAvisar();
+  const pendentes = await getAvisosPendentes();
   const agencia = normalizePhone(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER);
   const erros: string[] = [];
   let enviados = 0;
 
-  for (const c of cobrancas) {
+  for (const { cob, tipo } of pendentes) {
     let algumOk = false;
 
-    const fone = normalizePhone(c.contato);
+    const fone = normalizePhone(cob.contato);
     if (fone) {
-      const r = await sendWhatsapp(fone, mensagemCliente(c));
+      const r = await sendWhatsapp(fone, mensagemCliente(cob));
       if (r.ok) {
         enviados++;
         algumOk = true;
       } else {
-        erros.push(`cliente ${c.nome}: ${r.error}`);
+        erros.push(`cliente ${cob.nome}: ${r.error}`);
       }
     }
 
     if (agencia) {
-      const r = await sendWhatsapp(agencia, mensagemAgencia(c));
+      const r = await sendWhatsapp(agencia, mensagemAgencia(cob));
       if (r.ok) {
         enviados++;
         algumOk = true;
       } else {
-        erros.push(`agência (${c.nome}): ${r.error}`);
+        erros.push(`agência (${cob.nome}): ${r.error}`);
       }
     }
 
     if (algumOk) {
       await prisma.client.update({
-        where: { id: c.id },
-        data: { avisoVencimentoEm: c.dataVencimento },
+        where: { id: cob.id },
+        data:
+          tipo === "pre"
+            ? { avisoPreEm: cob.dataVencimento }
+            : { avisoDiaEm: cob.dataVencimento },
       });
     }
   }
 
-  return { clientes: cobrancas.length, enviados, erros };
+  return { clientes: pendentes.length, enviados, erros };
 }
 
-/** Envia o aviso de cobrança para UM cliente específico (só o cliente, não a agência). */
+/** Envia o aviso para UM cliente específico (manual, só o cliente — ignora "pago"). */
 export async function enviarAvisoParaCliente(
   clientId: string,
 ): Promise<{ ok: boolean; error?: string }> {
