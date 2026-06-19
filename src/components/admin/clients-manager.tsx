@@ -25,7 +25,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ClientForm } from "@/components/admin/client-form";
 import { ClientLedger } from "@/components/admin/client-ledger";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { deleteClient, dispararAvisosCobranca } from "@/app/admin/actions";
+import {
+  deleteClient,
+  dispararAvisosCobranca,
+  enviarAvisoCliente,
+} from "@/app/admin/actions";
 import { formatCurrency } from "@/lib/format";
 import type { ClientWithPlan } from "@/types";
 import type { RentalPlan } from "@prisma/client";
@@ -88,6 +92,23 @@ export function ClientsManager({
     undefined,
   );
 
+  const [avisandoId, setAvisandoId] = React.useState<string | null>(null);
+  const avisarUm = async (
+    e: React.MouseEvent,
+    id: string,
+    nome: string,
+  ) => {
+    e.stopPropagation();
+    if (!window.confirm(`Enviar aviso de cobrança no WhatsApp para ${nome}?`))
+      return;
+    setAvisandoId(id);
+    const r = await enviarAvisoCliente(id);
+    setAvisandoId(null);
+    window.alert(
+      r.ok ? `Aviso enviado para ${nome}. ✅` : `Não enviou: ${r.error}`,
+    );
+  };
+
   const [avisando, setAvisando] = React.useState(false);
   const enviarAvisos = async () => {
     setAvisando(true);
@@ -135,9 +156,23 @@ export function ClientsManager({
         className="group relative cursor-pointer rounded-xl border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span
-          className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
+          className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
           onClick={(e) => e.stopPropagation()}
         >
+          <button
+            type="button"
+            aria-label="Enviar aviso"
+            title="Enviar aviso de cobrança (WhatsApp) para este cliente"
+            disabled={avisandoId === c.id}
+            onClick={(e) => avisarUm(e, c.id, c.nome)}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50"
+          >
+            {avisandoId === c.id ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <BellRing className="h-4 w-4" />
+            )}
+          </button>
           <DeleteButton id={c.id} label={c.nome} action={deleteClient} />
         </span>
 
