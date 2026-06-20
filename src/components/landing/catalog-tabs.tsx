@@ -18,7 +18,7 @@ type View = "BMS" | "PAGINAS" | "PERFIS" | "VENDIDOS" | "ALUGUEIS";
 
 const STORAGE_KEY = "adstart:catalog-view";
 
-const VIEWS: View[] = ["BMS", "PAGINAS", "PERFIS", "VENDIDOS", "ALUGUEIS"];
+const VIEWS: View[] = ["BMS", "PAGINAS", "PERFIS", "ALUGUEIS", "VENDIDOS"];
 
 /**
  * Seletor no topo do catálogo da landing: alterna entre exibir somente as BMs
@@ -58,8 +58,8 @@ export function CatalogTabs({
       { value: "BMS", label: "BMs", img: "/icon-bm.png" },
       { value: "PAGINAS", label: "Páginas", img: "/icon-paginas.png" },
       { value: "PERFIS", label: "Perfis", Icon: AtSign },
-      { value: "VENDIDOS", label: "Vendidos", Icon: BadgeCheck },
       { value: "ALUGUEIS", label: "Aluguéis", Icon: KeyRound },
+      { value: "VENDIDOS", label: "Vendidos", Icon: BadgeCheck },
     ];
 
   const activeIndex = VIEWS.indexOf(view);
@@ -67,7 +67,7 @@ export function CatalogTabs({
   return (
     <section id="catalogo" className="container pt-8 pb-16 sm:pt-10 sm:pb-20">
       {/* seletor moderno BMs / Páginas / Vendidos / Aluguéis */}
-      <div className="mb-8 -mx-4 flex justify-center overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+      <div className="mb-8 -mx-4 flex justify-start overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:justify-center sm:px-0">
         <div className="relative inline-flex shrink-0 rounded-full border border-border bg-card/80 p-1 shadow-sm backdrop-blur">
           {/* pílula deslizante */}
           <span
