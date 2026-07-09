@@ -23,6 +23,7 @@ export type AssetWithContas = Prisma.AssetGetPayload<{
     semBloqueios: true;
     statusVenda: true;
     valor: true;
+    precoAntigo: true;
     destaque: true;
     icone: true;
     conteudo: true;
@@ -41,6 +42,7 @@ export type PagePublic = Prisma.PageGetPayload<{
     kind: true;
     status: true;
     valor: true;
+    precoAntigo: true;
     destaque: true;
     conteudo: true;
     imagens: { select: { data: true } };

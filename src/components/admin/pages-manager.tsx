@@ -118,8 +118,20 @@ export function PagesManager({
             <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
               Valor
             </div>
-            <div className="text-xl font-bold tabular-nums">
-              {formatCurrency(p.valor, "BRL")}
+            {p.precoAntigo != null && p.precoAntigo > p.valor && (
+              <div className="text-[11px] tabular-nums text-muted-foreground line-through">
+                {formatCurrency(p.precoAntigo, "BRL")}
+              </div>
+            )}
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-bold tabular-nums">
+                {formatCurrency(p.valor, "BRL")}
+              </span>
+              {p.precoAntigo != null && p.precoAntigo > p.valor && (
+                <span className="text-[11px] font-semibold text-emerald-400">
+                  -{Math.round((1 - p.valor / p.precoAntigo) * 100)}%
+                </span>
+              )}
             </div>
           </div>
           <span className="text-[11px] text-muted-foreground">
