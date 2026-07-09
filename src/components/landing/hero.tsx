@@ -39,21 +39,6 @@ export function Hero() {
         className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/55 to-background/90"
       />
 
-      {/* linhas de luz azul caindo (ad-rain-fall) */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <span
-            key={i}
-            className="ad-rain"
-            style={{
-              left: `${8 + i * 10}%`,
-              animationDuration: `${9 + (i % 4) * 3}s`,
-              animationDelay: `${i * 1.1}s`,
-            }}
-          />
-        ))}
-      </div>
-
       {/* glow azul flutuante */}
       <div
         aria-hidden
