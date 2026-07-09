@@ -39,6 +39,7 @@ interface AssetFormValues {
   tier: string;
   custoAquisicao: string;
   valor: string;
+  precoAntigo: string;
   destaque: boolean;
   conteudo: string;
   imagens: string[];
@@ -53,6 +54,7 @@ function toDefaults(asset?: AssetWithDetails): AssetFormValues {
     tier: asset?.tier ? String(asset.tier) : "NONE",
     custoAquisicao: asset?.custoAquisicao != null ? String(asset.custoAquisicao) : "",
     valor: asset?.valor ? String(asset.valor) : "",
+    precoAntigo: asset?.precoAntigo != null ? String(asset.precoAntigo) : "",
     destaque: asset?.destaque ?? false,
     conteudo: asset?.conteudo ?? "",
     imagens: asset?.imagens?.map((i) => i.data) ?? [],
@@ -227,7 +229,7 @@ export function AssetForm({ asset, onSuccess, onCancel }: AssetFormProps) {
         </div>
       </div>
 
-      {/* custo de aquisição (alimenta o financeiro) */}
+      {/* custo (financeiro) + preço antigo (desconto visual) */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Custo de aquisição (R$)</Label>
@@ -240,6 +242,20 @@ export function AssetForm({ asset, onSuccess, onCancel }: AssetFormProps) {
           />
           <p className="text-xs text-muted-foreground">
             Opcional — alimenta o financeiro (lucro, ROI, estoque).
+          </p>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Preço antigo — &quot;de&quot; (R$)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="Ex: 6000"
+            {...register("precoAntigo")}
+          />
+          <p className="text-xs text-muted-foreground">
+            Opcional — aparece riscado no card com a % de desconto. Precisa ser
+            maior que o preço de venda.
           </p>
         </div>
       </div>

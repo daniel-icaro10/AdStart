@@ -49,6 +49,8 @@ export const assetSchema = z.object({
   custoAquisicao: custoOpcional,
   // preço de venda (R$). Vazio/ inválido → 0.
   valor: z.coerce.number().min(0).catch(0).default(0),
+  // preço antigo "de" (R$) — riscado no card com % de desconto. Vazio → null.
+  precoAntigo: custoOpcional,
   // imagens: data URLs (base64), no máximo 3.
   imagens: z.array(z.string()).max(3).optional().default([]),
   // tier: "NONE"/"" → null; "1".."3" → número.

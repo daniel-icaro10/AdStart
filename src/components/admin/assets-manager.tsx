@@ -118,8 +118,20 @@ export function AssetsManager({
         )}
 
         {a.valor > 0 && (
-          <div className="mt-2 border-t border-border pt-2 text-sm font-bold tabular-nums">
-            {formatCurrency(a.valor, "BRL")}
+          <div className="mt-2 flex items-baseline gap-1.5 border-t border-border pt-2">
+            {a.precoAntigo != null && a.precoAntigo > a.valor && (
+              <span className="text-[10px] tabular-nums text-muted-foreground line-through">
+                {formatCurrency(a.precoAntigo, "BRL")}
+              </span>
+            )}
+            <span className="text-sm font-bold tabular-nums">
+              {formatCurrency(a.valor, "BRL")}
+            </span>
+            {a.precoAntigo != null && a.precoAntigo > a.valor && (
+              <span className="text-[10px] font-semibold text-emerald-400">
+                -{Math.round((1 - a.valor / a.precoAntigo) * 100)}%
+              </span>
+            )}
           </div>
         )}
       </div>

@@ -29,6 +29,15 @@ export function AssetCard({ asset, onClick }: AssetCardProps) {
   const emoji = getIconeEmoji(asset.icone);
   const tilt = useTilt<HTMLButtonElement>();
 
+  // Desconto visual: só quando o preço antigo é maior que o atual.
+  const temDesconto =
+    asset.precoAntigo != null &&
+    asset.valor > 0 &&
+    asset.precoAntigo > asset.valor;
+  const pctDesconto = temDesconto
+    ? Math.round((1 - asset.valor / asset.precoAntigo!) * 100)
+    : 0;
+
   return (
     <button
       type="button"
@@ -83,8 +92,20 @@ export function AssetCard({ asset, onClick }: AssetCardProps) {
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
               Preço
             </div>
-            <div className="text-lg font-bold leading-none">
-              {formatCurrency(asset.valor, "BRL")}
+            {temDesconto && (
+              <div className="text-xs text-muted-foreground line-through">
+                {formatCurrency(asset.precoAntigo!, "BRL")}
+              </div>
+            )}
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg font-bold leading-none">
+                {formatCurrency(asset.valor, "BRL")}
+              </span>
+              {temDesconto && pctDesconto > 0 && (
+                <span className="rounded-md border border-emerald-500/30 bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-emerald-400">
+                  -{pctDesconto}%
+                </span>
+              )}
             </div>
           </div>
         ) : (

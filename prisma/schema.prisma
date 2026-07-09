@@ -28,6 +28,7 @@ model Asset {
   semBloqueios Boolean @default(true)
   statusVenda  String // "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "PERDIDO"
   valor        Float   @default(0)
+  precoAntigo  Float? // preço "de" riscado no card (desconto visual na vitrine)
   destaque     Boolean @default(false) // tag "Nova"
   icone        String? // chave da bandeira/ícone (ex: "BR", "US")
   conteudo     String? // descrição em texto livre (estilo Notion)
