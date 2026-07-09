@@ -31,6 +31,13 @@ export function PageCard({ page }: { page: PagePublic }) {
   const tilt = useTilt<HTMLButtonElement>();
   const capa = page.imagens?.[0]?.data;
 
+  // Desconto visual: só quando o preço antigo é maior que o atual.
+  const temDesconto =
+    page.precoAntigo != null && page.valor > 0 && page.precoAntigo > page.valor;
+  const pctDesconto = temDesconto
+    ? Math.round((1 - page.valor / page.precoAntigo!) * 100)
+    : 0;
+
   return (
     <>
       <button
@@ -87,8 +94,20 @@ export function PageCard({ page }: { page: PagePublic }) {
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
                 Preço
               </div>
-              <div className="text-lg font-bold leading-none">
-                {formatCurrency(page.valor, "BRL")}
+              {temDesconto && (
+                <div className="text-xs text-muted-foreground line-through">
+                  {formatCurrency(page.precoAntigo!, "BRL")}
+                </div>
+              )}
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-lg font-bold leading-none">
+                  {formatCurrency(page.valor, "BRL")}
+                </span>
+                {temDesconto && pctDesconto > 0 && (
+                  <span className="rounded-md border border-emerald-500/30 bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-emerald-400">
+                    -{pctDesconto}%
+                  </span>
+                )}
               </div>
             </div>
           ) : (

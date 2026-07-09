@@ -99,11 +99,12 @@ model Page {
   kind       String // "COM" | "SEM" (com ou sem seguidores)
   seguidores Int     @default(0)
   anoCriacao Int?
-  status     String // "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "PERDIDO"
-  valor      Float
-  destaque   Boolean @default(false)
-  conteudo   String? // descrição em texto livre (estilo Notion, igual à BM)
-  quantidade Int     @default(1) // unidades em estoque (combos de página/perfil)
+  status      String // "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "PERDIDO"
+  valor       Float
+  precoAntigo Float? // preço "de" riscado no card (desconto visual na vitrine)
+  destaque    Boolean @default(false)
+  conteudo    String? // descrição em texto livre (estilo Notion, igual à BM)
+  quantidade  Int     @default(1) // unidades em estoque (combos de página/perfil)
 
   imagens PageImage[] // imagens exibidas no modal de detalhes (até 3)
   vendas  Sale[] // vendas de unidades (cada unidade vendida = 1 registro)

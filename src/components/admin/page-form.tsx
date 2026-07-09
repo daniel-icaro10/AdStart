@@ -27,6 +27,7 @@ interface PageFormValues {
   kind: "COM" | "SEM";
   status: StatusVenda;
   valor: string;
+  precoAntigo: string;
   custoAquisicao: string;
   quantidade: string;
   destaque: boolean;
@@ -42,6 +43,7 @@ function toDefaults(page?: PageWithImages): PageFormValues {
     kind: (page?.kind as "COM" | "SEM") ?? "COM",
     status: (page?.status as StatusVenda) ?? "DISPONIVEL",
     valor: s(page?.valor),
+    precoAntigo: page?.precoAntigo != null ? String(page.precoAntigo) : "",
     custoAquisicao: page?.custoAquisicao != null ? String(page.custoAquisicao) : "",
     quantidade: page?.quantidade != null ? String(page.quantidade) : "1",
     destaque: page?.destaque ?? false,
@@ -185,7 +187,7 @@ export function PageForm({
         </div>
       </div>
 
-      {/* unidades em estoque (combos) */}
+      {/* unidades em estoque (combos) + preço antigo (desconto visual) */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Unidades em estoque</Label>
@@ -199,6 +201,20 @@ export function PageForm({
           <p className="text-xs text-muted-foreground">
             Quantas unidades iguais você tem (combo). Ao vender, baixa 1; some da
             vitrine quando zera. A contagem não aparece pro cliente.
+          </p>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Preço antigo — &quot;de&quot; (R$)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="Ex: 2000"
+            {...register("precoAntigo")}
+          />
+          <p className="text-xs text-muted-foreground">
+            Opcional — aparece riscado no card com a % de desconto. Precisa ser
+            maior que o preço de venda.
           </p>
         </div>
       </div>

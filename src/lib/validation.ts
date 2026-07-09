@@ -74,6 +74,8 @@ export const pageSchema = z.object({
   kind: z.enum(["COM", "SEM"]),
   status: statusVendaEnum,
   valor: z.coerce.number().min(0, "Valor inválido"),
+  // preço antigo "de" (R$) — riscado no card com % de desconto. Vazio → null.
+  precoAntigo: custoOpcional,
   destaque: z.boolean().default(false),
   conteudo: z.string().max(8000).optional().default(""),
   // custo de aquisição (R$) — alimenta o financeiro.

@@ -70,14 +70,30 @@ export function PageDetailModal({
 
   const status = page.status as StatusVenda;
   const kindMeta = PAGE_KIND_META[page.kind as "COM" | "SEM"];
+  const ehPerfil = page.categoria === "PERFIL";
+
+  // Desconto visual: só quando o preço antigo é maior que o atual.
+  const temDesconto =
+    page.precoAntigo != null && page.valor > 0 && page.precoAntigo > page.valor;
+  const pctDesconto = temDesconto
+    ? Math.round((1 - page.valor / page.precoAntigo!) * 100)
+    : 0;
 
   const whatsappLink = buildWhatsappLink(
     [
-      "Olá! Tenho interesse nesta página 👇",
+      `Olá! Tenho interesse ${ehPerfil ? "neste perfil" : "nesta página"} 👇`,
       "",
       `*${page.nome}*`,
       `• ${kindMeta?.label ?? page.kind}`,
-      ...(page.valor > 0 ? [`• Preço: ${formatCurrency(page.valor, "BRL")}`] : []),
+      ...(page.valor > 0
+        ? [
+            `• Preço: ${formatCurrency(page.valor, "BRL")}${
+              temDesconto && pctDesconto > 0
+                ? ` (de ${formatCurrency(page.precoAntigo!, "BRL")} · -${pctDesconto}%)`
+                : ""
+            }`,
+          ]
+        : []),
       "",
       "Pode me passar mais detalhes?",
     ].join("\n"),
@@ -146,8 +162,22 @@ export function PageDetailModal({
           {page.valor > 0 && (
             <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
               <span className="text-sm text-muted-foreground">Preço</span>
-              <span className="text-2xl font-bold text-brand">
-                {formatCurrency(page.valor, "BRL")}
+              <span className="flex items-center gap-2">
+                {temDesconto && (
+                  <>
+                    <span className="text-sm text-muted-foreground line-through">
+                      {formatCurrency(page.precoAntigo!, "BRL")}
+                    </span>
+                    {pctDesconto > 0 && (
+                      <span className="rounded-md border border-emerald-500/30 bg-emerald-500/15 px-1.5 py-0.5 text-xs font-semibold text-emerald-400">
+                        -{pctDesconto}%
+                      </span>
+                    )}
+                  </>
+                )}
+                <span className="text-2xl font-bold text-brand">
+                  {formatCurrency(page.valor, "BRL")}
+                </span>
               </span>
             </div>
           )}

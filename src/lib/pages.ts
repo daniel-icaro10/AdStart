@@ -14,6 +14,7 @@ const PUBLIC_PAGE_SELECT = {
   kind: true,
   status: true,
   valor: true,
+  precoAntigo: true,
   destaque: true,
   conteudo: true,
   // imagem de capa (a primeira) — exibida direto no card da vitrine.
