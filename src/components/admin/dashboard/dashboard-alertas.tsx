@@ -22,7 +22,7 @@ function DiasBadge({ dias }: { dias: number }) {
 function verTodos(n: number) {
   return (
     <Link
-      href="/admin/financeiro/ativos"
+      href="/admin/ativos?tab=financeiro"
       className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
     >
       Ver todos ({n}) <ArrowRight className="h-3 w-3" />
@@ -156,7 +156,7 @@ export function DashboardAlertas({
           sem fornecedor
         </p>
         <Link
-          href="/admin/financeiro/ativos"
+          href="/admin/ativos?tab=financeiro"
           className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
         >
           Completar dados <ArrowRight className="h-3.5 w-3.5" />

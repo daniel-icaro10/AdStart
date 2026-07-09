@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
+// "Ativos" agora vive na sub-aba Financeiro de /admin/ativos (tudo num lugar só).
 const ITEMS = [
   { label: "Resumo", href: "/admin/financeiro" },
-  { label: "Ativos", href: "/admin/financeiro/ativos" },
   { label: "Custos", href: "/admin/financeiro/custos" },
 ];
 
