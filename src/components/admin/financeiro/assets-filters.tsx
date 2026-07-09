@@ -28,7 +28,8 @@ export function AssetsFilters({ fornecedores }: { fornecedores: string[] }) {
 
   const push = (next: URLSearchParams) => {
     next.delete("page"); // volta pra página 1 ao filtrar
-    router.push(`/admin/financeiro/ativos?${next.toString()}`);
+    next.set("tab", "financeiro"); // a tabela vive na sub-aba Financeiro de Ativos
+    router.push(`/admin/ativos?${next.toString()}`);
   };
 
   const setParam = (key: string, value: string) => {

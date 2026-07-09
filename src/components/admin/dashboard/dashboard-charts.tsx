@@ -45,7 +45,7 @@ export function DashboardCharts({
             title="Registre vendas para ver a evolução aqui."
             action={
               <Link
-                href="/admin/financeiro/ativos"
+                href="/admin/ativos?tab=financeiro"
                 className="text-sm font-medium text-brand hover:underline"
               >
                 Ir para Financeiro → Ativos

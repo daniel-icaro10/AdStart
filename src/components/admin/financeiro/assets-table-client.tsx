@@ -102,7 +102,8 @@ export function AssetsTableClient({
   const goPage = (p: number) => {
     const sp = new URLSearchParams(params.toString());
     sp.set("page", String(p));
-    router.push(`/admin/financeiro/ativos?${sp.toString()}`);
+    sp.set("tab", "financeiro"); // a tabela vive na sub-aba Financeiro de Ativos
+    router.push(`/admin/ativos?${sp.toString()}`);
   };
 
   const onDone = () => {

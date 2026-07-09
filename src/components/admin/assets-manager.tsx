@@ -138,6 +138,8 @@ export function AssetsManager({
     );
   };
 
+  const vendidas = assets.filter((a) => a.statusVenda === "VENDIDO");
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -170,7 +172,12 @@ export function AssetsManager({
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-subtle">
           {order.map((cat) => {
-            const items = assets.filter((a) => (a.categoria as Categoria) === cat);
+            // Vendidas saem das colunas de categoria — ficam na coluna própria no fim.
+            const items = assets.filter(
+              (a) =>
+                (a.categoria as Categoria) === cat &&
+                a.statusVenda !== "VENDIDO",
+            );
             return (
               <section key={cat} className="flex w-[260px] shrink-0 flex-col">
                 <div className="mb-3 flex items-center gap-2 px-1">
@@ -197,6 +204,33 @@ export function AssetsManager({
               </section>
             );
           })}
+
+          {/* coluna fixa no fim: BMs vendidas (separadas das disponíveis) */}
+          <section className="flex w-[260px] shrink-0 flex-col">
+            <div className="mb-3 flex items-center gap-2 px-1">
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide",
+                  STATUS_VENDA_META.VENDIDO.badgeClass,
+                )}
+              >
+                Vendidas
+              </span>
+              <span className="text-xs font-medium text-muted-foreground">
+                {vendidas.length}
+              </span>
+            </div>
+
+            {vendidas.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border bg-card/40 p-6 text-center text-xs text-faint">
+                Vazia
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {vendidas.map(renderCard)}
+              </div>
+            )}
+          </section>
         </div>
       )}
 
