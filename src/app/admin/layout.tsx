@@ -22,8 +22,8 @@ export default async function AdminLayout({
 
   return (
     <AdminShell
-      userName={session.user.name ?? "Administrador"}
       userEmail={session.user.email ?? ""}
+      userRole={session.user.role ?? "ADMIN"}
     >
       {children}
     </AdminShell>
