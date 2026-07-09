@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,9 +21,13 @@ interface PeriodSelectorProps {
   fim?: string;
 }
 
-/** Seletor de período que escreve o intervalo na query string da URL. */
+/**
+ * Seletor de período que escreve o intervalo na query string da URL.
+ * Usa a rota atual (funciona no Dashboard e no Financeiro).
+ */
 export function PeriodSelector({ preset, inicio, fim }: PeriodSelectorProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const params = useSearchParams();
   const [di, setDi] = React.useState(inicio ?? "");
   const [df, setDf] = React.useState(fim ?? "");
@@ -35,7 +39,7 @@ export function PeriodSelector({ preset, inicio, fim }: PeriodSelectorProps) {
       sp.delete("inicio");
       sp.delete("fim");
     }
-    router.push(`/admin/financeiro?${sp.toString()}`);
+    router.push(`${pathname}?${sp.toString()}`);
   };
 
   const aplicarCustom = () => {
@@ -43,7 +47,7 @@ export function PeriodSelector({ preset, inicio, fim }: PeriodSelectorProps) {
     sp.set("periodo", "custom");
     if (di) sp.set("inicio", di);
     if (df) sp.set("fim", df);
-    router.push(`/admin/financeiro?${sp.toString()}`);
+    router.push(`${pathname}?${sp.toString()}`);
   };
 
   return (

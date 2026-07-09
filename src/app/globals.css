@@ -57,7 +57,7 @@
    * NÃO é afetada por estes overrides.
    */
   .admin-theme {
-    --background: 11 15 23; /* #0B0F17 bg-base */
+    --background: 8 8 9; /* #080809 — mesmo preto da landing (:root) */
     --foreground: 232 236 244; /* #E8ECF4 text-primary */
     --card: 17 23 38; /* #111726 bg-surface */
     --card-foreground: 232 236 244;
@@ -177,19 +177,6 @@
     opacity: 0;
   }
 }
-@keyframes ad-rain-fall {
-  0% {
-    transform: translateY(-60px);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.6;
-  }
-  100% {
-    transform: translateY(120vh);
-    opacity: 0;
-  }
-}
 @keyframes ad-shimmer {
   0% {
     transform: translateX(-100%);
@@ -267,22 +254,6 @@
       transparent
     );
     animation: ad-shimmer 1.8s infinite;
-  }
-
-  /* Linha de luz vertical do hero (rain-fall). */
-  .ad-rain {
-    position: absolute;
-    top: 0;
-    width: 1px;
-    height: 60px;
-    background: linear-gradient(
-      to bottom,
-      transparent,
-      rgba(37, 99, 235, 0.6),
-      transparent
-    );
-    animation: ad-rain-fall linear infinite;
-    will-change: transform, opacity;
   }
 
   .animate-fade-in {

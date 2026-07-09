@@ -12,6 +12,7 @@ import {
   toBRL,
   type AtivoFinanceiro,
   type MetricasFinanceiras,
+  type PeriodoFiltro,
   type PontoMensal,
 } from "./financeiro";
 import { CATEGORIA_META, CATEGORIA_ORDER, type Categoria } from "./constants";
@@ -79,11 +80,13 @@ function diasDesde(d: Date | null): number {
   return Math.max(0, Math.floor((Date.now() - d.getTime()) / DIA_MS));
 }
 
-export async function getDashboardData(): Promise<DashboardData> {
+export async function getDashboardData(
+  periodo: PeriodoFiltro = periodoMesAtual(),
+): Promise<DashboardData> {
   const [ativos, taxa, metricas, serie, catGroup] = await Promise.all([
     getAtivosFinanceiros(),
     getTaxaAtual(),
-    getMetricasFinanceiras(periodoMesAtual()),
+    getMetricasFinanceiras(periodo),
     getSerieMensal(6),
     prisma.asset.groupBy({
       by: ["categoria"],
