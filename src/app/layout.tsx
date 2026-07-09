@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: `${siteConfig.agencyName} — Catálogo de BMs`,
   description:
     "Contas de anúncio (Business Managers) verificadas, sem dívidas e sem bloqueios. Entrega rápida e atendimento via WhatsApp.",
-  icons: { icon: "/icon-admin.png", apple: "/icon-admin.png" },
+  icons: { icon: "/icon.png", apple: "/icon.png" },
 };
 
 export default function RootLayout({
