@@ -13,13 +13,21 @@ datasource db {
 }
 
 /// Uma BM (Business Manager) à venda/aluguel.
+/// Campos estruturados de DESIGN.md §4 (BMListing) — populados por um backfill
+/// dedicado que parseia `conteudo` (ver scripts/parse-bm-conteudo.ts), nunca
+/// escritos direto por esta migração. `codigo`≈nome, `qtdContas`≈contasCriadas,
+/// `valor`≈preco, `precoAntigo`≈precoOriginal, `statusVenda`≈status já existiam
+/// e mapeiam 1:1 pro BMListing — não duplicados aqui.
 model Asset {
   id           String  @id @default(cuid())
   codigo       String // ex: "P100", "BM 01"
   titulo       String
-  moeda        String // "BRL" | "USD"
+  moeda        String // "BRL" | "USD" | "EUR" — BMListing.moeda
   categoria    String // "DISPONIVEL" | "DOLAR" | "10K_50K" | "MAIS_50K" | "SEM_CATEGORIA"
   anoCriacao   Int?
+  pais           String? // ISO alpha-2 (ex.: "US", "BR") — BMListing.pais
+  limiteContas   Int? // limite de contas de anúncio da BM (ex.: 5 em "BM5") — BMListing.limiteContas
+  gastoTotal     Float? // gasto histórico total, na moeda de `moeda` — BMListing.gastoTotal
   totalGastosBRL Float?
   totalGastosUSD Float?
   qtdContas    Int?
@@ -31,7 +39,7 @@ model Asset {
   precoAntigo  Float? // preço "de" riscado no card (desconto visual na vitrine)
   destaque     Boolean @default(false) // tag "Nova"
   icone        String? // chave da bandeira/ícone (ex: "BR", "US")
-  conteudo     String? // descrição em texto livre (estilo Notion)
+  conteudo     String? // descrição em texto livre (estilo Notion) — fonte do backfill estruturado
   tier         Int? // tier da BM (1..3); null = nenhum
 
   // ─── Campos financeiros ─────────────────────────────────────────────────
@@ -76,7 +84,9 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
-/// Conta de anúncio dentro de uma BM.
+/// Conta de anúncio dentro de uma BM — ContaAnuncio de DESIGN.md §4.
+/// `nome`≈rotulo, `gastos`≈gasto, `cicloLivre`≈ciclo, `dividas`≈divida já
+/// existiam e mapeiam 1:1; só `threshold` é campo novo.
 model AdAccount {
   id      String @id @default(cuid())
   assetId String
@@ -87,6 +97,7 @@ model AdAccount {
   gastos     Float?
   limiteMeta Float?
   cicloLivre Float?
+  threshold  Float? // teto de gasto por ciclo da conta — ContaAnuncio.threshold
   dividas    Float? @default(0)
 }
 

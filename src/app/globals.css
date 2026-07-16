@@ -86,6 +86,45 @@
     --brand: 59 130 246; /* #3B82F6 */
     --brand-hover: 96 165 250; /* #60A5FA */
   }
+
+  /*
+   * ─────────────────────────────────────────────────────────────────────
+   * Design tokens v2 — DESIGN.md §2 (Tokens).
+   * Namespace `--ds-*` para não colidir com os tokens em uso acima (ex.:
+   * --border, --accent, --text-muted, --radius já têm outro valor/sentido
+   * nos componentes atuais). Únicos para landing E admin — sem override em
+   * .admin-theme, conforme §6: "mesmos tokens" nos dois.
+   * AINDA NÃO consumidos por nenhum componente — só a base para a migração
+   * visual (ver DESIGN.md §9, ordem de execução).
+   * ───────────────────────────────────────────────────────────────────── */
+  :root {
+    /* Superfícies (azul-noite, não preto puro) */
+    --ds-bg: 10 14 22; /* #0A0E16 — fundo da página */
+    --ds-surface: 17 23 38; /* #111726 — cards, painéis */
+    --ds-surface-2: 24 32 47; /* #18202F — hover, header de card, inputs */
+    --ds-border: 35 45 64; /* #232D40 — bordas padrão */
+    --ds-border-soft: 26 34 51; /* #1A2233 — divisores internos */
+
+    /* Texto */
+    --ds-text: 232 236 244; /* #E8ECF4 */
+    --ds-text-muted: 138 148 168; /* #8A94A8 */
+    --ds-text-faint: 92 101 119; /* #5C6577 — rótulos, metadados */
+
+    /* Marca e semânticas */
+    --ds-accent: 77 141 255; /* #4D8DFF — ação, links, foco */
+    --ds-accent-soft: rgba(77, 141, 255, 0.12);
+    --ds-money: 245 184 77; /* #F5B84D — preços, descontos, valores em destaque */
+    --ds-success: 52 211 153; /* #34D399 — sem dívidas, ativo, pago */
+    --ds-success-bg: rgba(52, 211, 153, 0.1);
+    --ds-danger: 248 113 113; /* #F87171 — dívida, bloqueio, erro */
+    --ds-danger-bg: rgba(248, 113, 113, 0.1);
+
+    /* Forma */
+    --ds-radius: 10px; /* cards e inputs */
+    --ds-radius-sm: 6px; /* badges, botões pequenos */
+    --ds-shadow-card:
+      0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
 }
 
 @layer base {

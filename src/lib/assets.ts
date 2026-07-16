@@ -14,6 +14,9 @@ const PUBLIC_ASSET_SELECT = {
   moeda: true,
   categoria: true,
   anoCriacao: true,
+  pais: true,
+  limiteContas: true,
+  gastoTotal: true,
   totalGastosBRL: true,
   totalGastosUSD: true,
   qtdContas: true,
@@ -29,6 +32,19 @@ const PUBLIC_ASSET_SELECT = {
   tier: true,
   createdAt: true,
   updatedAt: true,
+  contas: {
+    select: {
+      id: true,
+      nome: true,
+      status: true,
+      gastos: true,
+      limiteMeta: true,
+      cicloLivre: true,
+      threshold: true,
+      dividas: true,
+    },
+    orderBy: { nome: "asc" },
+  },
 } as const satisfies Prisma.AssetSelect;
 
 /**

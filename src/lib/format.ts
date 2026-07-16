@@ -1,8 +1,14 @@
 import type { Moeda } from "./constants";
 
-/** Formata um valor monetário em BRL ou USD. */
+const MOEDA_LOCALE: Record<Moeda, string> = {
+  BRL: "pt-BR",
+  USD: "en-US",
+  EUR: "de-DE",
+};
+
+/** Formata um valor monetário em BRL, USD ou EUR. */
 export function formatCurrency(value: number, moeda: Moeda = "BRL"): string {
-  const locale = moeda === "USD" ? "en-US" : "pt-BR";
+  const locale = MOEDA_LOCALE[moeda];
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: moeda,
@@ -13,7 +19,7 @@ export function formatCurrency(value: number, moeda: Moeda = "BRL"): string {
 
 /** Formata número grande de forma compacta (ex: 87.450 -> "87,4 mil"). */
 export function formatCompact(value: number, moeda: Moeda = "BRL"): string {
-  const locale = moeda === "USD" ? "en-US" : "pt-BR";
+  const locale = MOEDA_LOCALE[moeda];
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: moeda,
