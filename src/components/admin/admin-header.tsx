@@ -32,7 +32,7 @@ export function AdminHeader({ userEmail, userRole }: AdminHeaderProps) {
   const funcao = ROLE_LABELS[userRole] ?? userRole;
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-card/40 px-4 sm:px-6">
+    <header className="flex h-14 items-center justify-between border-b border-ds-border-soft bg-ds-surface/40 px-4 sm:px-6">
       <AdminMobileNav />
       <div className="ml-auto flex items-center gap-2">
         <button

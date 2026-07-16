@@ -5,6 +5,7 @@ import { Boxes, FileText, AtSign, Wallet, Download } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { SectionTitle } from "@/components/ui/ds/section-title";
 import { AssetsManager } from "@/components/admin/assets-manager";
 import { PagesManager } from "@/components/admin/pages-manager";
 import { AssetsFilters } from "@/components/admin/financeiro/assets-filters";
@@ -87,23 +88,21 @@ export function AtivosHub({
         <PagesManager pages={perfis} categoria="PERFIL" />
       ) : (
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                Financeiro dos ativos
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Custo, margem prevista, dias em estoque e registro de
-                venda/perda.
-              </p>
-            </div>
-            <Button asChild variant="outline" size="sm">
-              <a href="/admin/financeiro/export?tipo=ativos">
-                <Download className="h-4 w-4" />
-                Exportar CSV
-              </a>
-            </Button>
-          </div>
+          <SectionTitle
+            as="h1"
+            size="l"
+            description="Custo, margem prevista, dias em estoque e registro de venda/perda."
+            action={
+              <Button asChild variant="outline" size="sm">
+                <a href="/admin/financeiro/export?tipo=ativos">
+                  <Download className="h-4 w-4" />
+                  Exportar CSV
+                </a>
+              </Button>
+            }
+          >
+            Financeiro dos ativos
+          </SectionTitle>
 
           <AssetsFilters fornecedores={fornecedores} />
           <AssetsTableClient

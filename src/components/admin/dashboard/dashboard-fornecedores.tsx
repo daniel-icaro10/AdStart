@@ -18,9 +18,9 @@ const brl = (v: number) => formatCurrency(v, "BRL");
 /** Ranking de fornecedores por lucro gerado × perdas. */
 export function DashboardFornecedores({ rows }: { rows: FornecedorRank[] }) {
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm">
-      <div className="flex items-center gap-2 border-b border-border p-4 text-sm font-semibold">
-        <Trophy className="h-4 w-4 text-warning" />
+    <div className="rounded-ds-lg border border-ds-border bg-ds-surface">
+      <div className="flex items-center gap-2 border-b border-ds-border-soft p-4 font-ds-sans text-sm font-semibold text-ds-text">
+        <Trophy className="h-4 w-4 text-ds-money" />
         Fornecedores — lucro × perdas
       </div>
       {rows.length === 0 ? (
@@ -44,23 +44,25 @@ export function DashboardFornecedores({ rows }: { rows: FornecedorRank[] }) {
             {rows.map((r) => (
               <TableRow key={r.fornecedor}>
                 <TableCell className="font-medium">{r.fornecedor}</TableCell>
-                <TableCell className="text-right tabular-nums">{r.vendidos}</TableCell>
+                <TableCell className="text-right font-ds-mono tabular-nums">
+                  {r.vendidos}
+                </TableCell>
                 <TableCell
                   className={cn(
-                    "text-right tabular-nums",
-                    r.lucro >= 0 ? "text-positive" : "text-negative",
+                    "text-right font-ds-mono tabular-nums",
+                    r.lucro >= 0 ? "text-ds-success" : "text-ds-danger",
                   )}
                 >
                   {brl(r.lucro)}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-right font-ds-mono tabular-nums">
                   {r.perdidos > 0 ? (
-                    <span className="text-negative">{r.perdidos}</span>
+                    <span className="text-ds-danger">{r.perdidos}</span>
                   ) : (
                     r.perdidos
                   )}
                 </TableCell>
-                <TableCell className="text-right tabular-nums text-muted-foreground">
+                <TableCell className="text-right font-ds-mono tabular-nums text-ds-text-muted">
                   {r.custoPerdas > 0 ? brl(r.custoPerdas) : "—"}
                 </TableCell>
               </TableRow>

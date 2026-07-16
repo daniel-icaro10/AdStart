@@ -18,8 +18,10 @@ import {
   periodoMesAnterior,
   periodoUltimosDias,
   periodoTotal,
+  periodoAnterior,
   periodoDoMesSP,
   resolverPeriodo,
+  kpiDelta,
   TAXA_CAMBIO_KEY,
   TAXA_CAMBIO_DEFAULT,
   type AtivoFinanceiro,
@@ -32,6 +34,7 @@ import {
   type MoedaAtivo,
   type CategoriasCusto,
   type PeriodoPreset,
+  type KpiDelta,
 } from "./financeiro-calc";
 
 export type {
@@ -45,6 +48,7 @@ export type {
   MoedaAtivo,
   CategoriasCusto,
   PeriodoPreset,
+  KpiDelta,
 };
 export {
   decimalToNumber,
@@ -54,8 +58,10 @@ export {
   periodoMesAnterior,
   periodoUltimosDias,
   periodoTotal,
+  periodoAnterior,
   periodoDoMesSP,
   resolverPeriodo,
+  kpiDelta,
   TAXA_CAMBIO_KEY,
   TAXA_CAMBIO_DEFAULT,
 };
