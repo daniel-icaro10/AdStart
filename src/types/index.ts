@@ -15,6 +15,9 @@ export type AssetWithContas = Prisma.AssetGetPayload<{
     moeda: true;
     categoria: true;
     anoCriacao: true;
+    pais: true;
+    limiteContas: true;
+    gastoTotal: true;
     totalGastosBRL: true;
     totalGastosUSD: true;
     qtdContas: true;
@@ -30,6 +33,18 @@ export type AssetWithContas = Prisma.AssetGetPayload<{
     tier: true;
     createdAt: true;
     updatedAt: true;
+    contas: {
+      select: {
+        id: true;
+        nome: true;
+        status: true;
+        gastos: true;
+        limiteMeta: true;
+        cicloLivre: true;
+        threshold: true;
+        dividas: true;
+      };
+    };
   };
 }>;
 

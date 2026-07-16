@@ -14,7 +14,7 @@ export type Categoria =
 
 export type StatusVenda = "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "PERDIDO";
 
-export type Moeda = "BRL" | "USD";
+export type Moeda = "BRL" | "USD" | "EUR";
 
 /** Ordem em que as colunas do Kanban aparecem. */
 export const CATEGORIA_ORDER: Categoria[] = [
