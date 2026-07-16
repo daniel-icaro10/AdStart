@@ -146,16 +146,16 @@ export function ClientLedger({
         </div>
 
         {rows.length === 0 ? (
-          <p className="rounded-ds-lg border border-dashed border-ds-border-soft bg-ds-surface/40 p-5 text-center text-xs text-ds-text-muted">
+          <p className="rounded-lg border border-dashed border-border bg-card/40 p-5 text-center text-xs text-muted-foreground">
             Sem lançamentos. Use “Nova linha” para registrar pagamentos e
             histórico do cliente.
           </p>
         ) : (
-          <div className="overflow-hidden rounded-ds-lg border border-ds-border">
+          <div className="overflow-hidden rounded-xl border border-border">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
                 <thead>
-                  <tr className="bg-ds-surface-2 text-left font-ds-sans text-ds-label uppercase text-ds-text-faint">
+                  <tr className="bg-accent/60 text-left text-[11px] uppercase tracking-wide text-muted-foreground">
                     <th className="px-3 py-2 font-medium">Data</th>
                     <th className="px-3 py-2 font-medium">Descrição</th>
                     <th className="px-3 py-2 text-right font-medium">Valor</th>
@@ -168,8 +168,8 @@ export function ClientLedger({
                     <tr
                       key={row.id}
                       className={cn(
-                        "border-t border-ds-border-soft transition-colors hover:bg-ds-surface-2",
-                        i % 2 === 1 && "bg-ds-surface/60",
+                        "border-t border-border transition-colors hover:bg-accent/30",
+                        i % 2 === 1 && "bg-card/40",
                       )}
                     >
                       <td className="px-2 py-1.5">
@@ -260,14 +260,14 @@ export function ClientLedger({
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-ds-border-soft bg-ds-surface-2">
+                  <tr className="border-t border-border bg-accent/40">
                     <td
-                      className="px-3 py-2 text-xs text-ds-text-muted"
+                      className="px-3 py-2 text-xs text-muted-foreground"
                       colSpan={2}
                     >
                       {rows.length} lançamento(s)
                     </td>
-                    <td className="px-3 py-2 text-right font-ds-mono text-sm font-bold tabular-nums text-ds-text">
+                    <td className="px-3 py-2 text-right text-sm font-bold tabular-nums">
                       {formatCurrency(total, "BRL")}
                     </td>
                     <td colSpan={2} />

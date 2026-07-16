@@ -1,10 +1,7 @@
+import { LayoutDashboard } from "lucide-react";
+
 import { getDashboardData } from "@/lib/dashboard";
-import {
-  resolverPeriodo,
-  periodoAnterior,
-  getMetricasFinanceiras,
-} from "@/lib/financeiro";
-import { SectionTitle } from "@/components/ui/ds/section-title";
+import { resolverPeriodo } from "@/lib/financeiro";
 import { FaturamentoPorGrupo } from "@/components/admin/financeiro/faturamento-por-grupo";
 import { PeriodSelector } from "@/components/admin/financeiro/period-selector";
 import { DashboardKpis } from "@/components/admin/dashboard/dashboard-kpis";
@@ -25,24 +22,23 @@ export default async function AdminDashboardPage({
     searchParams.inicio,
     searchParams.fim,
   );
-  const [d, metricasAnterior] = await Promise.all([
-    getDashboardData(periodo),
-    // "Total" não tem período anterior significativo — sem badge de variação.
-    preset === "total"
-      ? Promise.resolve(null)
-      : getMetricasFinanceiras(periodoAnterior(periodo)),
-  ]);
+  const d = await getDashboardData(periodo);
 
   return (
     <div className="space-y-6">
-      <SectionTitle
-        as="h1"
-        size="l"
-        description="Visão geral da operação — estoque, resultado do período e sinais de risco."
-        action={<DashboardAtalhos />}
-      >
-        Dashboard
-      </SectionTitle>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <LayoutDashboard className="h-6 w-6 text-brand" />
+            Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Visão geral da operação — estoque, resultado do período e sinais de
+            risco.
+          </p>
+        </div>
+        <DashboardAtalhos />
+      </div>
 
       <PeriodSelector
         preset={preset}
@@ -50,7 +46,7 @@ export default async function AdminDashboardPage({
         fim={searchParams.fim}
       />
 
-      <DashboardKpis m={d.metricas} anterior={metricasAnterior} />
+      <DashboardKpis m={d.metricas} />
 
       <FaturamentoPorGrupo m={d.metricas} />
 

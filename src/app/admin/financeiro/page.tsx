@@ -1,7 +1,6 @@
-import { Download } from "lucide-react";
+import { Wallet, Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { SectionTitle } from "@/components/ui/ds/section-title";
 import { FinanceiroNav } from "@/components/admin/financeiro/financeiro-nav";
 import { PeriodSelector } from "@/components/admin/financeiro/period-selector";
 import { MetricsCards } from "@/components/admin/financeiro/metrics-cards";
@@ -9,7 +8,6 @@ import { FaturamentoPorGrupo } from "@/components/admin/financeiro/faturamento-p
 import { FinanceiroCharts } from "@/components/admin/financeiro/financeiro-charts";
 import {
   resolverPeriodo,
-  periodoAnterior,
   getMetricasFinanceiras,
   getSerieMensal,
 } from "@/lib/financeiro";
@@ -27,21 +25,24 @@ export default async function FinanceiroPage({
     searchParams.fim,
   );
 
-  const [metricas, serie, metricasAnterior] = await Promise.all([
+  const [metricas, serie] = await Promise.all([
     getMetricasFinanceiras(periodo),
     getSerieMensal(6),
-    preset === "total"
-      ? Promise.resolve(null)
-      : getMetricasFinanceiras(periodoAnterior(periodo)),
   ]);
 
   return (
     <div className="space-y-6">
-      <SectionTitle
-        as="h1"
-        size="l"
-        description="Controle de estoque, vendas, perdas e lucro — consolidado em R$."
-        action={
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <Wallet className="h-6 w-6 text-brand" />
+            Financeiro
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Controle de estoque, vendas, perdas e lucro — consolidado em R$.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
           <Button asChild variant="outline" size="sm">
             <a
               href={`/admin/financeiro/export?tipo=resumo&${new URLSearchParams(
@@ -56,10 +57,8 @@ export default async function FinanceiroPage({
               Exportar CSV
             </a>
           </Button>
-        }
-      >
-        Financeiro
-      </SectionTitle>
+        </div>
+      </div>
 
       <FinanceiroNav />
       <PeriodSelector
@@ -67,7 +66,7 @@ export default async function FinanceiroPage({
         inicio={searchParams.inicio}
         fim={searchParams.fim}
       />
-      <MetricsCards m={metricas} anterior={metricasAnterior} />
+      <MetricsCards m={metricas} />
       <FaturamentoPorGrupo m={metricas} />
       <FinanceiroCharts serie={serie} m={metricas} />
     </div>

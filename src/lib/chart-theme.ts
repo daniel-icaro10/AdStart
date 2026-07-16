@@ -1,27 +1,27 @@
 /**
- * Fonte ÚNICA de cores/estilo para os gráficos (recharts) — tema compartilhado
- * do DESIGN.md §6.5. recharts exige strings de cor (não classes Tailwind),
- * então centralizamos aqui os hex dos tokens `--ds-*` — zero cor hardcoded
- * espalhada, e nada de paleta multicolorida padrão do Recharts: só estas 3
- * cores de série (accent, secondary, money) em qualquer gráfico.
+ * Fonte ÚNICA de cores/estilo para os gráficos (recharts).
+ * recharts exige strings de cor (não classes Tailwind), então centralizamos
+ * aqui os hex dos tokens do tema admin — zero cor hardcoded espalhada.
  */
 import { formatCompact, formatCurrency } from "./format";
 
 export const chart = {
-  accent: "#4D8DFF", // --ds-accent — série principal
-  secondary: "#8A94A8", // série secundária (ex.: Investimento)
-  money: "#F5B84D", // --ds-money — série de lucro/valores em destaque
-  axis: "#5C6577", // --ds-text-faint
-  grid: "#1A2233", // --ds-border-soft
+  accent: "#3B82F6", // série principal
+  positive: "#22C55E", // lucro
+  negative: "#EF4444", // perdas / negativo
+  warning: "#F59E0B",
+  neutral: "#64748B", // séries/eixos secundários (text-muted)
+  axis: "#64748B",
+  grid: "rgba(255,255,255,0.06)",
 } as const;
 
-/** Estilo do tooltip alinhado às superfícies do design system (--ds-*). */
+/** Estilo do tooltip alinhado às superfícies do admin. */
 export const tooltipStyle = {
-  backgroundColor: "#18202F", // --ds-surface-2
-  border: "1px solid #232D40", // --ds-border
+  backgroundColor: "#111726", // bg-surface
+  border: "1px solid #232D45", // border-subtle
   borderRadius: 8,
   fontSize: 12,
-  color: "#E8ECF4", // --ds-text
+  color: "#E8ECF4", // text-primary
 } as const;
 
 /** Eixo: moeda compacta pt-BR — "R$ 1,5 mil". */

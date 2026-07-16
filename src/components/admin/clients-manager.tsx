@@ -16,7 +16,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { SectionTitle } from "@/components/ui/ds/section-title";
 import {
   Dialog,
   DialogContent,
@@ -264,37 +263,36 @@ export function ClientsManager({
 
   return (
     <div className="space-y-6">
-      <SectionTitle
-        as="h1"
-        size="l"
-        description={`${clients.length} cliente(s). Clique em um card para editar.`}
-        action={
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={enviarAvisos}
-              disabled={avisando}
-              title="Envia agora os avisos de cobrança a vencer (WhatsApp)"
-            >
-              {avisando ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <BellRing className="h-4 w-4" />
-              )}
-              Enviar avisos
-            </Button>
-            <Button onClick={openNew}>
-              <Plus className="h-4 w-4" />
-              Novo cliente
-            </Button>
-          </div>
-        }
-      >
-        Clientes
-      </SectionTitle>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
+          <p className="text-sm text-muted-foreground">
+            {clients.length} cliente(s). Clique em um card para editar.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={enviarAvisos}
+            disabled={avisando}
+            title="Envia agora os avisos de cobrança a vencer (WhatsApp)"
+          >
+            {avisando ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <BellRing className="h-4 w-4" />
+            )}
+            Enviar avisos
+          </Button>
+          <Button onClick={openNew}>
+            <Plus className="h-4 w-4" />
+            Novo cliente
+          </Button>
+        </div>
+      </div>
 
       {clients.length === 0 ? (
-        <div className="rounded-ds-lg border border-dashed border-ds-border-soft bg-ds-surface/40">
+        <div className="rounded-xl border border-dashed border-border bg-card/40">
           <EmptyState
             icon={Users}
             title="Nenhum cliente cadastrado ainda."

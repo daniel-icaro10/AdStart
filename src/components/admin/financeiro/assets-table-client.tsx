@@ -122,10 +122,10 @@ export function AssetsTableClient({
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-ds-lg border border-ds-border bg-ds-surface">
+      <div className="overflow-x-auto rounded-xl border border-border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="bg-ds-surface-2/50 hover:bg-ds-surface-2/50">
+            <TableRow className="bg-accent/50 hover:bg-accent/50">
               <TableHead>Ativo</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Fornecedor</TableHead>
@@ -192,22 +192,22 @@ export function AssetsTableClient({
                       {a.tipo ? TIPO_LABELS[a.tipo] ?? a.tipo : "—"}
                     </TableCell>
                     <TableCell className="text-xs">{a.fornecedor ?? "—"}</TableCell>
-                    <TableCell className="text-right font-ds-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {moedaFmt(a.custoAquisicao)}
                     </TableCell>
-                    <TableCell className="text-right font-ds-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {moedaFmt(a.precoPrevisto)}
                     </TableCell>
                     <TableCell
                       className={cn(
-                        "text-right font-ds-mono tabular-nums",
-                        margem != null && margem >= 0 && "text-ds-success",
-                        margem != null && margem < 0 && "text-ds-danger",
+                        "text-right tabular-nums",
+                        margem != null && margem >= 0 && "text-positive",
+                        margem != null && margem < 0 && "text-negative",
                       )}
                     >
                       {moedaFmt(margem)}
                     </TableCell>
-                    <TableCell className="text-right font-ds-mono tabular-nums text-ds-text-muted">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       {diasEmEstoque(a.dataEntrada, a.dataSaida)}
                     </TableCell>
                     <TableCell>

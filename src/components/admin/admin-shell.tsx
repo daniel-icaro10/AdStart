@@ -17,9 +17,7 @@ export function AdminShell({ userEmail, userRole, children }: AdminShellProps) {
       <AdminSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader userEmail={userEmail} userRole={userRole} />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-[1200px]">{children}</div>
-        </main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );
