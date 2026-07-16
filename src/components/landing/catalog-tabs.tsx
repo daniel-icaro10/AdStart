@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
+import { BadgeCheck, KeyRound, AtSign, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { CatalogExplorer } from "./catalog-explorer";
@@ -19,10 +21,9 @@ const STORAGE_KEY = "adstart:catalog-view";
 const VIEWS: View[] = ["BMS", "PAGINAS", "PERFIS", "ALUGUEIS", "VENDIDOS"];
 
 /**
- * Tabs de segmento no topo do catálogo (DESIGN.md §5.3): navegação, não
- * decoração — cada aba mostra a contagem real e a ativa tem estado visível
- * (fundo --ds-surface-2 + indicador inferior --ds-accent). Lembra a última
- * aba via localStorage.
+ * Seletor no topo do catálogo da landing: alterna entre exibir somente as BMs
+ * (board por categoria) ou somente as Páginas. Segmented control moderno, com
+ * pílula deslizante animada; lembra a última aba via localStorage.
  */
 export function CatalogTabs({
   assets,
@@ -52,19 +53,28 @@ export function CatalogTabs({
     localStorage.setItem(STORAGE_KEY, v);
   };
 
-  const tabs: { value: View; label: string; count: number }[] = [
-    { value: "BMS", label: "BMs", count: assets.length },
-    { value: "PAGINAS", label: "Páginas", count: pages.length },
-    { value: "PERFIS", label: "Perfis", count: perfis.length },
-    { value: "ALUGUEIS", label: "Aluguéis", count: rentals.length },
-    { value: "VENDIDOS", label: "Vendidos", count: vendidosAssets.length },
-  ];
+  const tabs: { value: View; label: string; img?: string; Icon?: LucideIcon }[] =
+    [
+      { value: "BMS", label: "BMs", img: "/icon-bm.png" },
+      { value: "PAGINAS", label: "Páginas", img: "/icon-paginas.png" },
+      { value: "PERFIS", label: "Perfis", Icon: AtSign },
+      { value: "ALUGUEIS", label: "Aluguéis", Icon: KeyRound },
+      { value: "VENDIDOS", label: "Vendidos", Icon: BadgeCheck },
+    ];
+
+  const activeIndex = VIEWS.indexOf(view);
 
   return (
     <section id="catalogo" className="container pt-8 pb-16 sm:pt-10 sm:pb-20">
-      {/* tabs de segmento: BMs · Páginas · Perfis · Aluguéis · Vendidos */}
-      <div className="mb-8 -mx-4 flex justify-start overflow-x-auto border-b border-ds-border-soft px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:justify-center sm:px-0">
-        <div className="flex shrink-0">
+      {/* seletor moderno BMs / Páginas / Vendidos / Aluguéis */}
+      <div className="mb-8 -mx-4 flex justify-start overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:justify-center sm:px-0">
+        <div className="relative inline-flex shrink-0 rounded-full border border-border bg-card/80 p-1 shadow-sm backdrop-blur">
+          {/* pílula deslizante */}
+          <span
+            aria-hidden
+            className="absolute left-1 top-1 bottom-1 w-[92px] rounded-full bg-primary shadow-[0_6px_24px_-6px_rgb(var(--brand)/0.8)] transition-transform duration-300 ease-out sm:w-[124px]"
+            style={{ transform: `translateX(${activeIndex * 100}%)` }}
+          />
           {tabs.map((t) => {
             const active = view === t.value;
             return (
@@ -74,27 +84,27 @@ export function CatalogTabs({
                 onClick={() => select(t.value)}
                 aria-pressed={active}
                 className={cn(
-                  "relative shrink-0 whitespace-nowrap px-4 py-3 font-ds-sans text-sm font-medium transition-colors",
+                  "relative z-10 inline-flex w-[92px] shrink-0 items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition-colors sm:w-[124px]",
                   active
-                    ? "bg-ds-surface-2 text-ds-text"
-                    : "text-ds-text-muted hover:text-ds-text",
+                    ? "text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {t.label}
-                <span
-                  className={cn(
-                    "ml-1.5 font-ds-mono tabular-nums",
-                    active ? "text-ds-text-muted" : "text-ds-text-faint",
-                  )}
-                >
-                  ({t.count})
-                </span>
-                {active && (
-                  <span
-                    aria-hidden
-                    className="absolute inset-x-0 bottom-0 h-0.5 bg-ds-accent"
+                {t.img ? (
+                  <Image
+                    src={t.img}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className={cn(
+                      "object-contain",
+                      t.value === "PAGINAS" ? "h-8 w-8" : "h-5 w-5",
+                    )}
                   />
-                )}
+                ) : t.Icon ? (
+                  <t.Icon className="h-5 w-5" />
+                ) : null}
+                {t.label}
               </button>
             );
           })}

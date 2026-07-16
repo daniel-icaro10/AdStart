@@ -1,61 +1,52 @@
-import { SectionTitle } from "@/components/ui/ds/section-title";
+import { MessageSquare, ListChecks, CreditCard, Rocket } from "lucide-react";
 
-/**
- * Seção "Como comprar" (DESIGN.md §5.5): sequência real de 4 passos, por isso
- * numeração horizontal com conectores em vez de cards soltos com ícone.
- */
+/** Seção "Como comprar" — passo a passo simples. */
 export function HowToBuy() {
   const steps = [
     {
-      title: "Escolha o ativo",
+      icon: ListChecks,
+      title: "1. Escolha o ativo",
       desc: "Navegue pelo catálogo e abra os detalhes da BM que combina com sua operação.",
     },
     {
-      title: "Fale conosco",
+      icon: MessageSquare,
+      title: "2. Fale conosco",
       desc: "Clique em “Tenho interesse” e fale no WhatsApp já com o código do ativo.",
     },
     {
-      title: "Pagamento seguro",
+      icon: CreditCard,
+      title: "3. Pagamento seguro",
       desc: "Combinamos a forma de pagamento e confirmamos a reserva do ativo.",
     },
     {
-      title: "Entrega rápida",
+      icon: Rocket,
+      title: "4. Entrega rápida",
       desc: "Você recebe os acessos e o passo a passo de uso com suporte da equipe.",
     },
   ];
 
   return (
     <section className="container py-16 sm:py-20">
-      <SectionTitle
-        as="h2"
-        size="l"
-        className="mx-auto max-w-2xl justify-center text-center"
-        description="Processo direto, transparente e com atendimento humano em cada etapa."
-      >
-        Como comprar
-      </SectionTitle>
+      <div className="mx-auto max-w-2xl text-center">
+        <h2 className="ad-text-gradient mx-auto w-fit text-3xl font-bold tracking-tight">
+          Como comprar
+        </h2>
+        <p className="mt-3 text-muted-foreground">
+          Processo direto, transparente e com atendimento humano em cada etapa.
+        </p>
+      </div>
 
-      <div className="mt-12 grid gap-8 sm:grid-cols-4 sm:gap-4">
-        {steps.map((step, i) => (
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {steps.map((step) => (
           <div
             key={step.title}
-            className="relative flex flex-col items-center text-center"
+            className="rounded-xl border border-border bg-card p-5 shadow-sm"
           >
-            {i > 0 && (
-              <span
-                aria-hidden
-                className="absolute right-1/2 top-5 hidden h-px w-full -translate-y-1/2 bg-ds-border sm:block"
-              />
-            )}
-            <span className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ds-border bg-ds-surface font-ds-mono text-ds-data tabular-nums text-ds-text">
-              {i + 1}
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <step.icon className="h-5 w-5" />
             </span>
-            <h3 className="mt-4 font-ds-sans text-ds-body font-semibold text-ds-text">
-              {step.title}
-            </h3>
-            <p className="mt-1.5 font-ds-sans text-ds-body text-ds-text-muted">
-              {step.desc}
-            </p>
+            <h3 className="mt-4 font-semibold">{step.title}</h3>
+            <p className="mt-1.5 text-sm text-muted-foreground">{step.desc}</p>
           </div>
         ))}
       </div>

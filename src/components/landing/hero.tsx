@@ -2,104 +2,83 @@ import Link from "next/link";
 import Image from "next/image";
 import { MessageCircle } from "lucide-react";
 
-import { Button } from "@/components/ui/ds/button";
-import { SectionTitle } from "@/components/ui/ds/section-title";
+import { Button } from "@/components/ui/button";
 import { buildWhatsappLink } from "@/lib/config";
-import { formatCompact, formatInt } from "@/lib/format";
-
-interface HeroStats {
-  bmsDisponiveis: number;
-  gastoHistoricoBRL: number;
-  bmsVendidas: number;
-}
 
 /**
- * Nav (logo + WhatsApp) + hero em HTML/texto puro (DESIGN.md §5.4).
- * Sem banner-imagem: carrega instantâneo e os 3 dados agregados vêm do banco
- * (nunca inventados). "Entrega média" do mockup do doc não existe como dado
- * real hoje — substituído por "BMs vendidas" (prova de giro real).
+ * Banner translúcido do topo:
+ * - imagem de fundo (public/banner.png) com camada escura semitransparente;
+ * - logo (public/logo.png) num chip claro no canto superior esquerdo;
+ * - tema / área admin / WhatsApp no canto superior direito.
+ * Logo abaixo deste banner já começam os ativos (catálogo).
  */
-export function Hero({ stats }: { stats: HeroStats }) {
+export function Hero() {
   const whatsappLink = buildWhatsappLink(
     "Olá! Vim pelo catálogo e quero saber mais sobre as BMs disponíveis.",
   );
 
-  const dados = [
-    { label: "BMs disponíveis", value: formatInt(stats.bmsDisponiveis) },
-    {
-      label: "Gasto histórico somado",
-      value: formatCompact(stats.gastoHistoricoBRL, "BRL"),
-    },
-    { label: "BMs vendidas", value: formatInt(stats.bmsVendidas) },
-  ];
-
   return (
-    <header className="border-b border-ds-border-soft">
-      <div className="container flex items-center justify-between gap-3 py-4">
-        <Link
-          href="/"
-          aria-label="adStart — início"
-          className="inline-flex items-center rounded-xl bg-white/90 px-3 py-2 shadow-sm ring-1 ring-black/5"
-        >
-          <Image
-            src="/logo.png"
-            alt="adStart"
-            width={1104}
-            height={366}
-            priority
-            className="h-7 w-auto sm:h-8"
-          />
-        </Link>
+    <header className="relative h-40 overflow-hidden border-b border-border sm:h-52">
+      {/* imagem de fundo */}
+      <Image
+        src="/banner.png"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+        aria-hidden
+      />
+      {/* camadas translúcidas para legibilidade no tema escuro */}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-background/75 backdrop-blur-[1px] dark:bg-background/70"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/55 to-background/90"
+      />
 
-        <Button asChild variant="whatsapp">
-          <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-            <MessageCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">WhatsApp</span>
-          </a>
-        </Button>
+      {/* glow azul flutuante */}
+      <div
+        aria-hidden
+        className="ad-float pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-brand/20 blur-3xl"
+      />
+
+      {/* conteúdo (nav fixa no topo do banner) */}
+      <div className="container relative flex h-full flex-col">
+        <nav className="flex items-start justify-between gap-3 pt-4">
+          <Link
+            href="/"
+            aria-label="adStart — início"
+            className="inline-flex items-center rounded-xl bg-white/90 px-3 py-2 shadow-sm ring-1 ring-black/5 backdrop-blur transition-transform hover:scale-[1.02]"
+          >
+            <Image
+              src="/logo.png"
+              alt="adStart"
+              width={1104}
+              height={366}
+              priority
+              className="h-7 w-auto sm:h-8"
+            />
+          </Link>
+
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button asChild variant="whatsapp" size="sm">
+              <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </a>
+            </Button>
+          </div>
+        </nav>
       </div>
 
-      <div className="container py-10 sm:py-14">
-        <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-center">
-          <div>
-            <SectionTitle as="h1" size="xl">
-              Ativos de Meta Ads verificados, sem dívidas e com histórico real
-            </SectionTitle>
-            <p className="mt-4 max-w-prose font-ds-sans text-ds-body text-ds-text-muted">
-              BMs, páginas e perfis com dados reais de gasto e dívida — sem
-              letras miúdas, sem surpresa depois da compra.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button asChild variant="primary">
-                <a href="#catalogo">Ver catálogo</a>
-              </Button>
-              <Button asChild variant="whatsapp">
-                <a
-                  href={whatsappLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Chamar no WhatsApp
-                </a>
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 border-t border-ds-border-soft pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
-            {dados.map((item) => (
-              <div key={item.label}>
-                <div className="font-ds-mono text-ds-data-lg tabular-nums text-ds-text">
-                  {item.value}
-                </div>
-                <div className="mt-1 font-ds-sans text-ds-label uppercase text-ds-text-faint">
-                  {item.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* linha de degradê da marca na base do banner */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-fuchsia-500 via-sky-500 to-violet-500"
+      />
     </header>
   );
 }
