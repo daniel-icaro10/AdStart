@@ -7,6 +7,7 @@ import { Plus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SectionTitle } from "@/components/ui/ds/section-title";
 import {
   Dialog,
   DialogContent,
@@ -144,22 +145,22 @@ export function PagesManager({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{tituloPlural}</h1>
-          <p className="text-sm text-muted-foreground">
-            {pages.length} {ehPerfil ? "perfil(is)" : "página(s)"}. Clique em um
-            card para editar.
-          </p>
-        </div>
-        <Button onClick={openNew}>
-          <Plus className="h-4 w-4" />
-          {rotuloNovo}
-        </Button>
-      </div>
+      <SectionTitle
+        as="h1"
+        size="l"
+        description={`${pages.length} ${ehPerfil ? "perfil(is)" : "página(s)"}. Clique em um card para editar.`}
+        action={
+          <Button onClick={openNew}>
+            <Plus className="h-4 w-4" />
+            {rotuloNovo}
+          </Button>
+        }
+      >
+        {tituloPlural}
+      </SectionTitle>
 
       {pages.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card/40">
+        <div className="rounded-ds-lg border border-dashed border-ds-border-soft bg-ds-surface/40">
           <EmptyState
             icon={FileText}
             title={
@@ -191,7 +192,7 @@ export function PagesManager({
                 </div>
 
                 {items.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-border bg-card/40 p-6 text-center text-xs text-faint">
+                  <div className="rounded-ds-sm border border-dashed border-ds-border-soft bg-ds-surface/40 p-6 text-center font-ds-sans text-xs text-ds-text-faint">
                     {ehPerfil
                       ? "Nenhum perfil nesta coluna."
                       : "Nenhuma página nesta coluna."}

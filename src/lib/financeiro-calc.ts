@@ -434,6 +434,14 @@ export function periodoTotal(): PeriodoFiltro {
   return { inicio: new Date(0), fim: new Date() };
 }
 
+/** Janela imediatamente anterior, com a mesma duração do período dado. */
+export function periodoAnterior(periodo: PeriodoFiltro): PeriodoFiltro {
+  const duracaoMs = periodo.fim.getTime() - periodo.inicio.getTime();
+  const fim = new Date(periodo.inicio.getTime() - 1);
+  const inicio = new Date(fim.getTime() - duracaoMs);
+  return { inicio, fim };
+}
+
 /** "YYYY-MM-DD" → início (00:00) ou fim (23:59:59.999) do dia em São Paulo. */
 function parseDiaSP(s: string | undefined, fimDoDia: boolean): Date | null {
   if (!s) return null;
@@ -465,4 +473,35 @@ export function resolverPeriodo(
     default:
       return { preset: "mes_atual", periodo: periodoMesAtual() };
   }
+}
+
+// ─── KPI: variação vs. período anterior (DESIGN.md §6.2) ─────────────────────
+
+export interface KpiDelta {
+  arrowUp: boolean;
+  /** "+12%" / "-8%" / "novo" (quando o período anterior era zero). */
+  texto: string;
+  /** Se essa variação é boa (verde) ou ruim (vermelha) — depende da métrica. */
+  bom: boolean;
+}
+
+/**
+ * Delta de uma métrica entre o período atual e o anterior.
+ * `positivoBom`: false para métricas onde SUBIR é ruim (ex.: perdas, taxa de
+ * perda) — a seta reflete a direção real, a cor reflete se isso é bom ou ruim.
+ * Retorna null quando não há variação (sem badge — nada para destacar).
+ */
+export function kpiDelta(
+  atual: number,
+  anterior: number,
+  positivoBom = true,
+): KpiDelta | null {
+  if (atual === anterior) return null;
+  const arrowUp = atual > anterior;
+  const bom = positivoBom ? arrowUp : !arrowUp;
+  const texto =
+    anterior === 0
+      ? "novo"
+      : `${arrowUp ? "+" : ""}${Math.round(((atual - anterior) / Math.abs(anterior)) * 100)}%`;
+  return { arrowUp, texto, bom };
 }

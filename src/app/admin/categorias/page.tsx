@@ -1,3 +1,4 @@
+import { SectionTitle } from "@/components/ui/ds/section-title";
 import { CategoryOrderEditor } from "@/components/admin/category-order-editor";
 import { getCategoryOrder } from "@/lib/settings";
 
@@ -8,12 +9,13 @@ export default async function AdminCategoriasPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Categorias</h1>
-        <p className="text-sm text-muted-foreground">
-          Arraste para definir a ordem em que as colunas aparecem na landing.
-        </p>
-      </div>
+      <SectionTitle
+        as="h1"
+        size="l"
+        description="Arraste para definir a ordem em que as colunas aparecem na landing."
+      >
+        Categorias
+      </SectionTitle>
 
       <CategoryOrderEditor initial={order} />
     </div>

@@ -61,10 +61,10 @@ export function CustosTableClient({ custos }: { custos: SerializedCusto[] }) {
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-ds-lg border border-ds-border bg-ds-surface">
         <Table>
           <TableHeader>
-            <TableRow className="bg-accent/50 hover:bg-accent/50">
+            <TableRow className="bg-ds-surface-2/50 hover:bg-ds-surface-2/50">
               <TableHead>Descrição</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Data</TableHead>
@@ -100,7 +100,7 @@ export function CustosTableClient({ custos }: { custos: SerializedCusto[] }) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{fmtData(c.data)}</TableCell>
-                  <TableCell className="text-right tabular-nums">
+                  <TableCell className="text-right font-ds-mono tabular-nums">
                     {formatCurrency(c.valor, c.moeda)}
                   </TableCell>
                   <TableCell>

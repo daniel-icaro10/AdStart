@@ -23,10 +23,10 @@ export function FaturamentoPorGrupo({ m }: { m: MetricasFinanceiras }) {
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-faint">
+        <h2 className="font-ds-sans text-ds-label uppercase text-ds-text-faint">
           Faturamento por tipo (período)
         </h2>
-        <span className="text-sm text-muted-foreground">
+        <span className="font-ds-sans text-ds-body text-ds-text-muted">
           Total {brl(totalReceita)}
         </span>
       </div>
@@ -38,41 +38,41 @@ export function FaturamentoPorGrupo({ m }: { m: MetricasFinanceiras }) {
           return (
             <div
               key={key}
-              className="rounded-xl border border-border bg-card p-4 shadow-sm"
+              className="rounded-ds-lg border border-ds-border bg-ds-surface p-4"
             >
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-2 text-sm font-medium">
-                  <Icon className="h-4 w-4 text-brand" />
+                <span className="inline-flex items-center gap-2 font-ds-sans text-ds-body font-medium text-ds-text">
+                  <Icon className="h-4 w-4 text-ds-accent" />
                   {label}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="font-ds-sans text-xs text-ds-text-muted">
                   {d.quantidade} venda(s)
                 </span>
               </div>
 
-              <div className="mt-2 text-2xl font-bold tabular-nums">
+              <div className="mt-2 font-ds-mono text-ds-data-lg tabular-nums text-ds-text">
                 {brl(d.receita)}
               </div>
 
               <div className="mt-1 flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">
+                <span className="text-ds-text-muted">
                   {pct.toFixed(0)}% do total
                 </span>
                 <span
                   className={cn(
-                    "tabular-nums",
-                    d.lucro > 0 && "text-positive",
-                    d.lucro < 0 && "text-negative",
-                    d.lucro === 0 && "text-muted-foreground",
+                    "font-ds-mono tabular-nums",
+                    d.lucro > 0 && "text-ds-success",
+                    d.lucro < 0 && "text-ds-danger",
+                    d.lucro === 0 && "text-ds-text-muted",
                   )}
                 >
                   lucro {brl(d.lucro)}
                 </span>
               </div>
 
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-accent">
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ds-surface-2">
                 <div
-                  className="h-full rounded-full bg-brand transition-all"
+                  className="h-full rounded-full bg-ds-accent transition-all"
                   style={{ width: `${pct}%` }}
                 />
               </div>
