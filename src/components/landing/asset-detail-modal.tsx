@@ -9,21 +9,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/ds/badge";
-import { Button } from "@/components/ui/ds/button";
-import { PriceTag } from "@/components/ui/ds/price-tag";
-import { SpecRow } from "@/components/ui/ds/spec-row";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { fetchAssetImagens } from "@/app/admin/actions";
 import {
+  CATEGORIA_META,
   STATUS_VENDA_META,
+  TIER_BADGE_CLASS,
   getIconeEmoji,
-  type Moeda,
+  type Categoria,
   type StatusVenda,
 } from "@/lib/constants";
 import { buildWhatsappLink } from "@/lib/config";
 import { formatCurrency } from "@/lib/format";
-import { getCardSpecRows, getDebtInfo, getMetaLine } from "./bm-card-utils";
 import type { AssetWithContas } from "@/types";
 
 interface AssetDetailModalProps {
@@ -32,7 +31,7 @@ interface AssetDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/** Modal de detalhes da BM (DESIGN.md §5.1): ficha técnica + tabela de contas. */
+/** Modal com o conteúdo completo (texto livre) da BM. */
 export function AssetDetailModal({
   asset,
   open,
@@ -72,13 +71,9 @@ export function AssetDetailModal({
 
   if (!asset) return null;
 
+  const categoria = asset.categoria as Categoria;
   const statusVenda = asset.statusVenda as StatusVenda;
-  const isVendido = statusVenda === "VENDIDO";
-  const moeda = (asset.moeda as Moeda) ?? "BRL";
   const emoji = getIconeEmoji(asset.icone);
-  const debt = getDebtInfo(asset);
-  const specRows = getCardSpecRows(asset);
-  const metaLine = getMetaLine(asset);
 
   // Desconto visual: só quando o preço antigo é maior que o atual.
   const temDesconto =
@@ -99,6 +94,7 @@ export function AssetDetailModal({
     "Olá! Tenho interesse nesta BM 👇",
     "",
     `*${asset.codigo}${asset.titulo ? ` — ${asset.titulo}` : ""}*`,
+    `• Categoria: ${CATEGORIA_META[categoria].label}`,
     ...(asset.valor > 0
       ? [
           `• Preço: ${formatCurrency(asset.valor, "BRL")}${
@@ -108,13 +104,12 @@ export function AssetDetailModal({
           }`,
         ]
       : []),
-    ...(metaLine ? [`• ${metaLine}`] : []),
-    ...(asset.gastoTotal != null
-      ? [`• Gasto total: ${formatCurrency(asset.gastoTotal, moeda)}`]
+    ...(asset.qtdContas != null
+      ? [`• Contas de anúncio: ${asset.qtdContas}`]
       : []),
+    ...(asset.anoCriacao != null ? [`• Ano de criação: ${asset.anoCriacao}`] : []),
     ...(asset.tier != null ? [`• Tier ${asset.tier}`] : []),
     ...(selos.length ? [`• ${selos.join(" · ")}`] : []),
-    `• ${debt.hasDebt ? `Dívida${debt.amount != null ? `: ${formatCurrency(debt.amount, moeda)}` : ""}` : "Sem dívidas"}`,
     "",
     "Pode me passar mais detalhes?",
   ];
@@ -126,36 +121,27 @@ export function AssetDetailModal({
       <DialogContent>
         <DialogHeader>
           <div className="flex flex-wrap items-center gap-1.5">
-            {asset.tier != null && <Badge variant="tier">Tier {asset.tier}</Badge>}
-            <Badge variant="moeda">
-              {emoji && <span>{emoji}</span>}
-              {asset.moeda}
+            <Badge className={cn("border", CATEGORIA_META[categoria].badgeClass)}>
+              {CATEGORIA_META[categoria].label}
             </Badge>
             <Badge
               className={cn("border", STATUS_VENDA_META[statusVenda].badgeClass)}
             >
               {STATUS_VENDA_META[statusVenda].label}
             </Badge>
-            {asset.destaque && !isVendido && <Badge variant="nova">Nova</Badge>}
-
-            {debt.hasDebt ? (
-              <Badge variant="divida" className="ml-auto">
-                Dívida{debt.amount != null ? ` ${formatCurrency(debt.amount, moeda)}` : ""}
-              </Badge>
-            ) : (
-              <Badge variant="sem-dividas" className="ml-auto">
-                Sem dívidas
+            {asset.tier != null && (
+              <Badge className={TIER_BADGE_CLASS}>Tier {asset.tier}</Badge>
+            )}
+            {asset.destaque && (
+              <Badge className="border border-amber-500/30 bg-amber-500/15 text-amber-400">
+                Nova
               </Badge>
             )}
           </div>
-          <DialogTitle className="mt-1 font-ds-display text-ds-text">
+          <DialogTitle className="mt-1 flex items-center gap-2">
+            {emoji && <span className="text-2xl leading-none">{emoji}</span>}
             {asset.titulo}
           </DialogTitle>
-          {metaLine && (
-            <p className="font-ds-sans text-ds-body text-ds-text-muted">
-              {metaLine}
-            </p>
-          )}
         </DialogHeader>
 
         {/* galeria de imagens (carregadas ao abrir) */}
@@ -185,101 +171,38 @@ export function AssetDetailModal({
           </div>
         )}
 
-        {/* ficha técnica */}
-        {specRows.length > 0 && (
-          <div className="space-y-1.5 rounded-ds-lg border border-ds-border bg-ds-surface p-4">
-            {specRows.map((row) => (
-              <SpecRow key={row.label} label={row.label} value={row.value} />
-            ))}
-          </div>
-        )}
-
-        {/* tabela de contas de anúncio */}
-        <div>
-          <h4 className="mb-2 font-ds-sans text-ds-label uppercase text-ds-text-faint">
-            Contas de anúncio
-          </h4>
-          {asset.contas.length > 0 ? (
-            <div className="overflow-x-auto rounded-ds-lg border border-ds-border">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-ds-border bg-ds-surface-2">
-                    <th className="px-3 py-2 font-ds-sans text-ds-label uppercase text-ds-text-faint">
-                      Conta
-                    </th>
-                    <th className="px-3 py-2 font-ds-sans text-ds-label uppercase text-ds-text-faint">
-                      Status
-                    </th>
-                    <th className="px-3 py-2 text-right font-ds-sans text-ds-label uppercase text-ds-text-faint">
-                      Gasto
-                    </th>
-                    <th className="px-3 py-2 text-right font-ds-sans text-ds-label uppercase text-ds-text-faint">
-                      Limite Meta
-                    </th>
-                    <th className="px-3 py-2 text-right font-ds-sans text-ds-label uppercase text-ds-text-faint">
-                      Ciclo
-                    </th>
-                    <th className="px-3 py-2 text-right font-ds-sans text-ds-label uppercase text-ds-text-faint">
-                      Threshold
-                    </th>
-                    <th className="px-3 py-2 text-right font-ds-sans text-ds-label uppercase text-ds-text-faint">
-                      Dívida
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {asset.contas.map((conta) => (
-                    <tr key={conta.id} className="border-b border-ds-border-soft last:border-0">
-                      <td className="px-3 py-2 font-ds-sans text-ds-data text-ds-text">
-                        {conta.nome}
-                      </td>
-                      <td className="px-3 py-2 font-ds-sans text-ds-data text-ds-text-muted">
-                        {conta.status}
-                      </td>
-                      <td className="px-3 py-2 text-right font-ds-mono text-ds-data tabular-nums text-ds-text">
-                        {conta.gastos != null ? formatCurrency(conta.gastos, moeda) : "—"}
-                      </td>
-                      <td className="px-3 py-2 text-right font-ds-mono text-ds-data tabular-nums text-ds-text">
-                        {conta.limiteMeta != null ? formatCurrency(conta.limiteMeta, moeda) : "—"}
-                      </td>
-                      <td className="px-3 py-2 text-right font-ds-mono text-ds-data tabular-nums text-ds-text">
-                        {conta.cicloLivre != null ? formatCurrency(conta.cicloLivre, moeda) : "—"}
-                      </td>
-                      <td className="px-3 py-2 text-right font-ds-mono text-ds-data tabular-nums text-ds-text">
-                        {conta.threshold != null ? formatCurrency(conta.threshold, moeda) : "—"}
-                      </td>
-                      <td
-                        className={cn(
-                          "px-3 py-2 text-right font-ds-mono text-ds-data tabular-nums",
-                          conta.dividas && conta.dividas > 0 ? "text-ds-danger" : "text-ds-text-muted",
-                        )}
-                      >
-                        {conta.dividas ? formatCurrency(conta.dividas, moeda) : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="rounded-ds-lg border border-ds-border-soft bg-ds-surface p-4 text-sm text-ds-text-muted">
-              Nenhuma conta de anúncio cadastrada ainda.
-            </p>
-          )}
-        </div>
-
-        {/* conteúdo em texto livre (descrição complementar) */}
-        {asset.conteudo && (
+        {/* conteúdo em texto livre */}
+        {asset.conteudo ? (
           <div className="whitespace-pre-line rounded-lg border border-border bg-background p-4 text-sm leading-relaxed">
             {asset.conteudo}
           </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Sem descrição cadastrada.
+          </p>
         )}
 
         {/* preço */}
         {asset.valor > 0 && (
-          <div className="flex items-center justify-between rounded-ds-lg border border-ds-border bg-ds-surface px-4 py-3">
-            <span className="font-ds-sans text-ds-body text-ds-text-muted">Preço</span>
-            <PriceTag price={asset.valor} originalPrice={asset.precoAntigo} />
+          <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
+            <span className="text-sm text-muted-foreground">Preço</span>
+            <span className="flex items-center gap-2">
+              {temDesconto && (
+                <>
+                  <span className="text-sm text-muted-foreground line-through">
+                    {formatCurrency(asset.precoAntigo!, "BRL")}
+                  </span>
+                  {pctDesconto > 0 && (
+                    <span className="rounded-md border border-emerald-500/30 bg-emerald-500/15 px-1.5 py-0.5 text-xs font-semibold text-emerald-400">
+                      -{pctDesconto}%
+                    </span>
+                  )}
+                </>
+              )}
+              <span className="text-2xl font-bold text-brand">
+                {formatCurrency(asset.valor, "BRL")}
+              </span>
+            </span>
           </div>
         )}
 
@@ -287,8 +210,9 @@ export function AssetDetailModal({
         <Button
           asChild
           variant="whatsapp"
+          size="lg"
           className="w-full"
-          disabled={isVendido}
+          disabled={statusVenda === "VENDIDO"}
         >
           <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
             <MessageCircle className="h-5 w-5" />

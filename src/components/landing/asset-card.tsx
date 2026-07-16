@@ -1,12 +1,19 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+import { useTilt } from "@/hooks/use-tilt";
 import { formatCurrency } from "@/lib/format";
-import { Badge } from "@/components/ui/ds/badge";
-import { PriceTag } from "@/components/ui/ds/price-tag";
-import { SpecRow } from "@/components/ui/ds/spec-row";
-import { getIconeEmoji, type Moeda, type StatusVenda } from "@/lib/constants";
-import { getCardSpecRows, getDebtInfo, getMetaLine } from "./bm-card-utils";
+import { Badge } from "@/components/ui/badge";
+import {
+  CATEGORIA_META,
+  STATUS_VENDA_META,
+  TIER_BADGE_CLASS,
+  getIconeEmoji,
+  type Categoria,
+  type StatusVenda,
+} from "@/lib/constants";
 import type { AssetWithContas } from "@/types";
 
 interface AssetCardProps {
@@ -14,92 +21,100 @@ interface AssetCardProps {
   onClick: () => void;
 }
 
-/**
- * Card de uma BM (DESIGN.md §5.1) — clicável → abre o modal de detalhes.
- * Botão único (sem CTA duplo no rosto do card): mantém o padrão já usado
- * por Page/Perfil/Vendidos, onde o WhatsApp real só existe dentro do modal.
- */
+/** Card de uma BM no board Kanban. Clicável → abre o modal de detalhes. */
 export function AssetCard({ asset, onClick }: AssetCardProps) {
+  const categoria = asset.categoria as Categoria;
   const statusVenda = asset.statusVenda as StatusVenda;
   const isVendido = statusVenda === "VENDIDO";
-  const moeda = (asset.moeda as Moeda) ?? "BRL";
   const emoji = getIconeEmoji(asset.icone);
-  const debt = getDebtInfo(asset);
-  const specRows = getCardSpecRows(asset);
-  const metaLine = getMetaLine(asset);
+  const tilt = useTilt<HTMLButtonElement>();
+
+  // Desconto visual: só quando o preço antigo é maior que o atual.
+  const temDesconto =
+    asset.precoAntigo != null &&
+    asset.valor > 0 &&
+    asset.precoAntigo > asset.valor;
+  const pctDesconto = temDesconto
+    ? Math.round((1 - asset.valor / asset.precoAntigo!) * 100)
+    : 0;
 
   return (
     <button
       type="button"
       onClick={onClick}
+      ref={tilt.ref}
+      onMouseMove={tilt.onMouseMove}
+      onMouseLeave={tilt.onMouseLeave}
       className={cn(
-        "group relative w-full rounded-ds-lg border border-ds-border bg-ds-surface p-4 text-left",
-        "transition-[border-color,transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-ds-accent hover:shadow-ds-card",
-        "outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ds-accent",
-        isVendido && "opacity-55",
+        "group ad-hover-glow w-full rounded-xl p-4 text-left shadow-sm",
+        CATEGORIA_META[categoria].cardClass,
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        isVendido && "opacity-60",
       )}
     >
-      {isVendido && (
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-          <Badge
-            variant="vendida"
-            className="-rotate-6 border-ds-text-faint bg-ds-surface px-3 py-1 text-sm"
-          >
-            Vendida
-          </Badge>
-        </div>
-      )}
-
-      {/* badges topo */}
+      {/* topo: badges */}
       <div className="flex flex-wrap items-center gap-1.5">
-        {asset.tier != null && <Badge variant="tier">Tier {asset.tier}</Badge>}
-        <Badge variant="moeda">
-          {emoji && <span>{emoji}</span>}
-          {asset.moeda}
+        <Badge className={cn("border", CATEGORIA_META[categoria].badgeClass)}>
+          {CATEGORIA_META[categoria].label}
         </Badge>
-        {asset.destaque && !isVendido && <Badge variant="nova">Nova</Badge>}
-
-        {debt.hasDebt ? (
-          <Badge variant="divida" className="ml-auto">
-            Dívida{debt.amount != null ? ` ${formatCurrency(debt.amount, moeda)}` : ""}
+        {asset.tier != null && (
+          <Badge className={TIER_BADGE_CLASS}>Tier {asset.tier}</Badge>
+        )}
+        {asset.destaque && !isVendido && (
+          <Badge className="border border-amber-500/30 bg-amber-500/15 text-amber-400">
+            <Sparkles className="h-3 w-3" />
+            Nova
           </Badge>
-        ) : (
-          <Badge variant="sem-dividas" className="ml-auto">
-            Sem dívidas
+        )}
+        {isVendido && (
+          <Badge className={cn("border", STATUS_VENDA_META.VENDIDO.badgeClass)}>
+            Vendido
           </Badge>
         )}
       </div>
 
-      {/* título */}
-      <h3 className="mt-3 font-ds-display text-ds-title-card text-ds-text">
-        {asset.titulo}
-      </h3>
+      {/* título com ícone */}
+      <div className="mt-3 flex items-center gap-2">
+        {emoji && <span className="text-xl leading-none">{emoji}</span>}
+        <h3 className="font-semibold leading-snug">{asset.titulo}</h3>
+      </div>
 
-      {/* metadados */}
-      {metaLine && (
-        <p className="mt-1 font-ds-sans text-ds-body text-ds-text-muted">
-          {metaLine}
+      {/* conteúdo em texto livre completo (quebras preservadas) */}
+      {asset.conteudo && (
+        <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+          {asset.conteudo}
         </p>
       )}
 
-      {/* ficha técnica: até 4 linhas pontilhadas */}
-      {specRows.length > 0 && (
-        <div className="mt-3 space-y-1.5 border-t border-ds-border-soft pt-3">
-          {specRows.map((row) => (
-            <SpecRow key={row.label} label={row.label} value={row.value} />
-          ))}
-        </div>
-      )}
-
-      {/* preço */}
-      {asset.valor > 0 && (
-        <div className="mt-3 flex items-end justify-between gap-2 border-t border-ds-border-soft pt-3">
-          <PriceTag price={asset.valor} originalPrice={asset.precoAntigo} />
-          <span className="shrink-0 font-ds-sans text-ds-label uppercase text-ds-text-faint group-hover:text-ds-accent">
-            Ver detalhes
-          </span>
-        </div>
-      )}
+      <div className="mt-3 flex items-end justify-between gap-2 border-t border-border pt-3">
+        {asset.valor > 0 ? (
+          <div>
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              Preço
+            </div>
+            {temDesconto && (
+              <div className="text-xs text-muted-foreground line-through">
+                {formatCurrency(asset.precoAntigo!, "BRL")}
+              </div>
+            )}
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg font-bold leading-none">
+                {formatCurrency(asset.valor, "BRL")}
+              </span>
+              {temDesconto && pctDesconto > 0 && (
+                <span className="rounded-md border border-emerald-500/30 bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-emerald-400">
+                  -{pctDesconto}%
+                </span>
+              )}
+            </div>
+          </div>
+        ) : (
+          <span />
+        )}
+        <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">
+          Ver detalhes →
+        </span>
+      </div>
     </button>
   );
 }
