@@ -3,9 +3,10 @@ import Image from "next/image";
 import { MessageCircle, Instagram, Users } from "lucide-react";
 
 import { siteConfig, buildWhatsappLink } from "@/lib/config";
+import { formatCurrency } from "@/lib/format";
 
-/** Rodapé com contatos e link discreto para a área admin. */
-export function Footer() {
+/** Rodapé com contatos, cotação do dia (DESIGN.md §7) e link discreto para a área admin. */
+export function Footer({ taxaCambio }: { taxaCambio: number }) {
   const whatsappLink = buildWhatsappLink(
     "Olá! Quero falar sobre as BMs do catálogo.",
   );
@@ -62,9 +63,12 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-border">
-        <div className="container flex items-center justify-center gap-2 py-4 text-center text-xs text-muted-foreground">
-          <span>
+      <div className="border-t border-ds-border-soft">
+        <div className="container flex flex-col items-center justify-center gap-1 py-4 text-center font-ds-sans text-xs">
+          <span className="text-ds-text-faint">
+            Cotação de hoje: {formatCurrency(taxaCambio, "BRL")}
+          </span>
+          <span className="text-muted-foreground">
             © {new Date().getFullYear()} {siteConfig.agencyName}. Todos os
             direitos reservados.
           </span>
