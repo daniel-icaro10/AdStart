@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Boxes, FileText, AtSign, Wallet, Download } from "lucide-react";
+import { Boxes, FileText, AtSign, Wallet, Download, Bell } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AdminTabBar } from "@/components/admin/admin-tab-bar";
+import { AdminHero, type AdminHeroStat } from "@/components/admin/admin-hero";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AssetsManager } from "@/components/admin/assets-manager";
 import { PagesManager } from "@/components/admin/pages-manager";
@@ -52,9 +53,21 @@ export function AtivosHub({
     },
   ] as const;
 
+  const heroStats: AdminHeroStat[] = [
+    { label: "BMs em catálogo", value: String(assets.length), tone: "neutral" },
+    { label: "Páginas", value: String(paginas.length), tone: "neutral" },
+    { label: "Perfis", value: String(perfis.length), tone: "neutral" },
+    { label: "Itens no financeiro", value: String(financeiro.total), tone: "neutral" },
+  ];
+
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="Ativos" description="BMs, páginas e perfis em catálogo." />
+      <AdminHero
+        title="Ativos"
+        description="BMs, páginas e perfis em catálogo."
+        stats={heroStats}
+        action={{ label: "Ver alertas", href: "/admin#alertas", icon: Bell }}
+      />
 
       <AdminTabBar
         items={tabs.map((t) => ({

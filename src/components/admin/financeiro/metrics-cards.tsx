@@ -1,10 +1,7 @@
 import {
-  TrendingUp,
-  Wallet,
   Boxes,
   Target,
   PiggyBank,
-  Receipt,
   AlertTriangle,
   Percent,
   ShieldAlert,
@@ -33,42 +30,18 @@ interface CardDef {
   tone: Tone;
 }
 
-/** Cards de resumo do dashboard financeiro (consolidado em BRL). */
+/**
+ * Cards de resumo do dashboard financeiro (consolidado em BRL). Investimento,
+ * Receita, Lucro e Perdas do período já aparecem no hero acima — aqui ficam
+ * só as métricas complementares (ROI, taxa de perda, estoque, previsto).
+ */
 export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
   const cards: CardDef[] = [
-    {
-      label: "Investimento (período)",
-      value: brl(m.investimentoTotal),
-      icon: Wallet,
-      hint: "Custo dos ativos que entraram + custos operacionais",
-      tone: "neutral",
-    },
-    {
-      label: "Receita realizada",
-      value: brl(m.receitaRealizada),
-      icon: Receipt,
-      hint: `${m.totalVendidoPeriodo} venda(s) no período`,
-      tone: "neutral",
-    },
-    {
-      label: "Lucro realizado",
-      value: brl(m.lucroRealizado),
-      icon: TrendingUp,
-      tone: sign(m.lucroRealizado),
-      hint: "Vendas com custo − custos operacionais",
-    },
     {
       label: "ROI realizado",
       value: pct(m.roiRealizado),
       icon: Percent,
       tone: sign(m.roiRealizado),
-    },
-    {
-      label: "Perdas (período)",
-      value: brl(m.perdas),
-      icon: AlertTriangle,
-      tone: m.perdas > 0 ? "negative" : "neutral",
-      hint: `${m.totalPerdidoPeriodo} ativo(s) perdido(s)`,
     },
     {
       label: "Taxa de perda",
