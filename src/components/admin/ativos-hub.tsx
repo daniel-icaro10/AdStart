@@ -3,8 +3,9 @@
 import * as React from "react";
 import { Boxes, FileText, AtSign, Wallet, Download } from "lucide-react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { AdminTabBar } from "@/components/admin/admin-tab-bar";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AssetsManager } from "@/components/admin/assets-manager";
 import { PagesManager } from "@/components/admin/pages-manager";
 import { AssetsFilters } from "@/components/admin/financeiro/assets-filters";
@@ -53,31 +54,18 @@ export function AtivosHub({
 
   return (
     <div className="space-y-6">
-      <div className="inline-flex max-w-full overflow-x-auto rounded-xl border border-border bg-card p-1 shadow-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {tabs.map((t) => {
-          const active = tab === t.value;
-          return (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setTab(t.value)}
-              aria-pressed={active}
-              className={cn(
-                "inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:px-4",
-                active
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <t.Icon className="h-4 w-4" />
-              {t.label}
-              <span className="rounded bg-background/60 px-1.5 text-xs tabular-nums">
-                {t.count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <AdminPageHeader title="Ativos" description="BMs, páginas e perfis em catálogo." />
+
+      <AdminTabBar
+        items={tabs.map((t) => ({
+          key: t.value,
+          label: t.label,
+          icon: t.Icon,
+          count: t.count,
+          active: tab === t.value,
+          onClick: () => setTab(t.value),
+        }))}
+      />
 
       {tab === "BMS" ? (
         <AssetsManager assets={assets} order={order} />
@@ -87,23 +75,18 @@ export function AtivosHub({
         <PagesManager pages={perfis} categoria="PERFIL" />
       ) : (
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                Financeiro dos ativos
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Custo, margem prevista, dias em estoque e registro de
-                venda/perda.
-              </p>
-            </div>
-            <Button asChild variant="outline" size="sm">
-              <a href="/admin/financeiro/export?tipo=ativos">
-                <Download className="h-4 w-4" />
-                Exportar CSV
-              </a>
-            </Button>
-          </div>
+          <AdminPageHeader
+            title="Financeiro dos ativos"
+            description="Custo, margem prevista, dias em estoque e registro de venda/perda."
+            actions={
+              <Button asChild variant="outline" size="sm">
+                <a href="/admin/financeiro/export?tipo=ativos">
+                  <Download className="h-4 w-4" />
+                  Exportar CSV
+                </a>
+              </Button>
+            }
+          />
 
           <AssetsFilters fornecedores={fornecedores} />
           <AssetsTableClient

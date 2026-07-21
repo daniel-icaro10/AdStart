@@ -1,10 +1,8 @@
-import { LayoutDashboard } from "lucide-react";
-
 import { getDashboardData } from "@/lib/dashboard";
 import { resolverPeriodo } from "@/lib/financeiro";
 import { FaturamentoPorGrupo } from "@/components/admin/financeiro/faturamento-por-grupo";
 import { PeriodSelector } from "@/components/admin/financeiro/period-selector";
-import { DashboardKpis } from "@/components/admin/dashboard/dashboard-kpis";
+import { DashboardHero } from "@/components/admin/dashboard/dashboard-hero";
 import { DashboardAtalhos } from "@/components/admin/dashboard/dashboard-atalhos";
 import { DashboardAlertas } from "@/components/admin/dashboard/dashboard-alertas";
 import { DashboardCharts } from "@/components/admin/dashboard/dashboard-charts";
@@ -24,29 +22,20 @@ export default async function AdminDashboardPage({
   );
   const d = await getDashboardData(periodo);
 
+  const pendingAlertas = d.agingTotal + d.reservadosTotal + d.incompletosTotal;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <LayoutDashboard className="h-6 w-6 text-brand" />
-            Dashboard
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Visão geral da operação — estoque, resultado do período e sinais de
-            risco.
-          </p>
-        </div>
+      <DashboardHero m={d.metricas} pendingAlertas={pendingAlertas} />
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PeriodSelector
+          preset={preset}
+          inicio={searchParams.inicio}
+          fim={searchParams.fim}
+        />
         <DashboardAtalhos />
       </div>
-
-      <PeriodSelector
-        preset={preset}
-        inicio={searchParams.inicio}
-        fim={searchParams.fim}
-      />
-
-      <DashboardKpis m={d.metricas} />
 
       <FaturamentoPorGrupo m={d.metricas} />
 

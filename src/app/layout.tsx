@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Archivo } from "next/font/google";
+import { Inter, Archivo, Outfit } from "next/font/google";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 
@@ -24,6 +24,16 @@ const archivo = Archivo({
   display: "swap",
 });
 
+// Fonte do tema do admin (TailAdmin usa Outfit). Exposta como CSS var e
+// aplicada só na subárvore .admin-theme via classe font-admin (AdminShell /
+// /login) — a landing pública continua em Inter/font-sans.
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-outfit",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: `${siteConfig.agencyName} — Catálogo de BMs`,
   description:
@@ -39,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${archivo.variable} ${GeistSans.variable} ${GeistMono.variable} font-sans`}
+        className={`${inter.variable} ${archivo.variable} ${outfit.variable} ${GeistSans.variable} ${GeistMono.variable} font-sans`}
       >
         <Providers>{children}</Providers>
       </body>

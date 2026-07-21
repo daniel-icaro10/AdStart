@@ -19,7 +19,7 @@ import { TIPO_LABELS } from "./assets-filters";
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card p-4">
       <h3 className="mb-4 text-sm font-semibold">{title}</h3>
       <div className="h-64">{children}</div>
     </div>

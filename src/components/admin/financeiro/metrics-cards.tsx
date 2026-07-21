@@ -106,7 +106,7 @@ export function MetricsCards({ m }: { m: MetricasFinanceiras }) {
         {cards.map((c) => (
           <div
             key={c.label}
-            className="rounded-xl border border-border bg-card p-4 shadow-sm"
+            className="rounded-2xl border border-border bg-card p-4"
           >
             <div className="flex items-start justify-between gap-2">
               <span className="text-xs uppercase tracking-wide text-faint">

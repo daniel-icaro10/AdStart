@@ -156,7 +156,7 @@ export function AssetsManager({
       </div>
 
       {assets.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card/40">
+        <div className="rounded-2xl border border-dashed border-border bg-card/40">
           <EmptyState
             icon={Boxes}
             title="Nenhum ativo cadastrado ainda."
