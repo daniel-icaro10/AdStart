@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
-import { LogOut, Mail, ShieldCheck } from "lucide-react";
+import { LogOut, Mail, Search, Bell, ShieldCheck, PanelLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,10 +13,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AdminMobileNav } from "./admin-mobile-nav";
+import { ThemeToggle } from "./theme-toggle";
+import { useAdminSidebar } from "./admin-sidebar-context";
 
 interface AdminHeaderProps {
   userEmail: string;
   userRole: string;
+  /** Nº de avisos pendentes (ponto rosa no sino). Ainda não conectado a uma fonte real. */
+  pendingCount?: number;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -24,32 +28,72 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 /**
- * Barra superior do admin: menu mobile + ícone da conta + sair.
- * O ícone (icon-admin.png) abre um modal com o email e a função do admin.
+ * Barra superior do admin no padrão TailAdmin: hambúrguer mobile + toggle de
+ * colapso da sidebar (desktop) + busca à esquerda; tema claro/escuro,
+ * notificações e conta à direita.
  */
-export function AdminHeader({ userEmail, userRole }: AdminHeaderProps) {
+export function AdminHeader({ userEmail, userRole, pendingCount = 0 }: AdminHeaderProps) {
   const [open, setOpen] = React.useState(false);
+  const { toggleCollapsed } = useAdminSidebar();
   const funcao = ROLE_LABELS[userRole] ?? userRole;
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-card/40 px-4 sm:px-6">
-      <AdminMobileNav />
-      <div className="ml-auto flex items-center gap-2">
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-card px-4 py-3 shadow-theme-xs sm:px-6">
+      <div className="flex items-center gap-3">
+        <AdminMobileNav />
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          aria-label="Recolher/expandir menu"
+          className="hidden h-10 w-10 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:inline-flex"
+        >
+          <PanelLeft className="h-5 w-5" />
+        </button>
+        <div className="relative hidden lg:block">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Buscar..."
+            className="h-11 w-[280px] rounded-lg border border-border bg-transparent py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10 xl:w-[350px]"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 sm:gap-3">
+        <ThemeToggle />
+
+        <button
+          type="button"
+          aria-label="Notificações"
+          className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <Bell className="h-5 w-5" />
+          {pendingCount > 0 && (
+            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-card" />
+          )}
+        </button>
+
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Conta do administrador"
           title="Conta"
-          className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-1 ring-border transition-shadow hover:ring-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Image
-            src="/icon-admin.png"
-            alt="Admin"
-            width={36}
-            height={36}
-            className="h-full w-full object-cover"
-          />
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full ring-1 ring-border">
+            <Image
+              src="/icon-admin.png"
+              alt="Admin"
+              width={44}
+              height={44}
+              className="h-full w-full object-cover"
+            />
+          </span>
+          <span className="hidden text-sm font-medium text-foreground-strong sm:inline">
+            {userEmail.split("@")[0]}
+          </span>
         </button>
+
         <Button
           variant="ghost"
           size="sm"
@@ -62,7 +106,7 @@ export function AdminHeader({ userEmail, userRole }: AdminHeaderProps) {
 
       {/* modal da conta */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="admin-theme max-w-sm">
+        <DialogContent className="admin-theme font-admin max-w-sm">
           <DialogHeader>
             <DialogTitle>Conta</DialogTitle>
           </DialogHeader>

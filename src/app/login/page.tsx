@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/admin/theme-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,10 @@ export default async function LoginPage() {
   if (session) redirect("/admin");
 
   return (
-    <main className="admin-theme flex min-h-screen items-center justify-center bg-background px-4 py-12 text-foreground">
+    <main className="admin-theme font-admin relative flex min-h-screen items-center justify-center bg-background px-4 py-12 text-foreground">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm">
         <Link
           href="/"
@@ -33,7 +37,7 @@ export default async function LoginPage() {
           Voltar ao catálogo
         </Link>
 
-        <Card className="shadow-md">
+        <Card>
           <CardHeader>
             <span className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <ShieldCheck className="h-5 w-5" />

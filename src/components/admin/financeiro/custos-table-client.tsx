@@ -61,10 +61,10 @@ export function CustosTableClient({ custos }: { custos: SerializedCusto[] }) {
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="bg-accent/50 hover:bg-accent/50">
+            <TableRow className="hover:bg-transparent">
               <TableHead>Descrição</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Data</TableHead>

@@ -80,7 +80,7 @@ export function PagesManager({
           }
         }}
         className={cn(
-          "group relative cursor-pointer rounded-xl p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "group relative cursor-pointer rounded-2xl p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           PAGE_KIND_META[p.kind as "COM" | "SEM"].cardClass,
         )}
       >
@@ -159,7 +159,7 @@ export function PagesManager({
       </div>
 
       {pages.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card/40">
+        <div className="rounded-2xl border border-dashed border-border bg-card/40">
           <EmptyState
             icon={FileText}
             title={

@@ -48,7 +48,7 @@ function AlertCard({
 }) {
   if (empty) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm">
+      <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
         <Check className="h-4 w-4 text-positive" />
         <span className="font-medium text-foreground">{title}</span>
         <span>· {emptyLabel}</span>
@@ -56,7 +56,7 @@ function AlertCard({
     );
   }
   return (
-    <div className="flex flex-col rounded-xl border border-border bg-card p-4 shadow-sm">
+    <div className="flex flex-col rounded-2xl border border-border bg-card p-4">
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
         <Icon className="h-4 w-4 text-faint" />
         {title}
@@ -98,7 +98,7 @@ export function DashboardAlertas({
   incSemFornecedor: number;
 }) {
   return (
-    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
+    <div id="alertas" className="grid scroll-mt-24 grid-cols-1 items-start gap-4 lg:grid-cols-3">
       <AlertCard
         icon={Clock}
         title="Parados em estoque"

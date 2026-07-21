@@ -18,7 +18,7 @@ const brl = (v: number) => formatCurrency(v, "BRL");
 /** Ranking de fornecedores por lucro gerado × perdas. */
 export function DashboardFornecedores({ rows }: { rows: FornecedorRank[] }) {
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm">
+    <div className="rounded-2xl border border-border bg-card">
       <div className="flex items-center gap-2 border-b border-border p-4 text-sm font-semibold">
         <Trophy className="h-4 w-4 text-warning" />
         Fornecedores — lucro × perdas

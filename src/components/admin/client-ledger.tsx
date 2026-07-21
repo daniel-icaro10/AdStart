@@ -151,7 +151,7 @@ export function ClientLedger({
             histórico do cliente.
           </p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border">
+          <div className="overflow-hidden rounded-2xl border border-border">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
                 <thead>

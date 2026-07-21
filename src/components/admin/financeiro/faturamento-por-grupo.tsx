@@ -38,7 +38,7 @@ export function FaturamentoPorGrupo({ m }: { m: MetricasFinanceiras }) {
           return (
             <div
               key={key}
-              className="rounded-xl border border-border bg-card p-4 shadow-sm"
+              className="rounded-2xl border border-border bg-card p-4"
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-2 text-sm font-medium">

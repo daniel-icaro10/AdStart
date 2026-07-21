@@ -59,7 +59,7 @@ export function RentalsManager({ plans }: { plans: RentalPlan[] }) {
           }
         }}
         className={cn(
-          "group relative cursor-pointer rounded-xl border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "group relative cursor-pointer rounded-2xl border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           p.destaque ? "border-primary/60" : "border-border",
           !p.ativo && "opacity-60",
         )}
@@ -132,7 +132,7 @@ export function RentalsManager({ plans }: { plans: RentalPlan[] }) {
       </div>
 
       {plans.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card/40">
+        <div className="rounded-2xl border border-dashed border-border bg-card/40">
           <EmptyState
             icon={KeyRound}
             title="Nenhum plano de aluguel cadastrado ainda."

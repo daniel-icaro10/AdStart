@@ -189,7 +189,7 @@ export function ClientsManager({
             openEdit(c);
           }
         }}
-        className="group relative cursor-pointer rounded-xl border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="group relative cursor-pointer rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span
           className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
@@ -292,7 +292,7 @@ export function ClientsManager({
       </div>
 
       {clients.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card/40">
+        <div className="rounded-2xl border border-dashed border-border bg-card/40">
           <EmptyState
             icon={Users}
             title="Nenhum cliente cadastrado ainda."

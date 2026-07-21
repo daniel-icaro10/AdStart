@@ -17,6 +17,9 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        // Fonte do tema do admin (TailAdmin usa Outfit). Aplicada via classe
+        // font-admin no AdminShell/login — a landing pública continua em Inter.
+        admin: ["var(--font-outfit)", "system-ui", "sans-serif"],
         // Design system v2 (DESIGN.md §3) — papéis Display/UI/Dados.
         // Prefixo "ds-" para não colidir com font-sans/font-mono já em uso;
         // ainda não aplicadas a nenhum componente.
@@ -53,7 +56,10 @@ const config: Config = {
         input: rgb("--input"),
         ring: rgb("--ring"),
         background: rgb("--background"),
-        foreground: rgb("--foreground"),
+        foreground: {
+          DEFAULT: rgb("--foreground"),
+          strong: rgb("--foreground-strong"),
+        },
         primary: {
           DEFAULT: rgb("--primary"),
           foreground: rgb("--primary-foreground"),
@@ -124,6 +130,10 @@ const config: Config = {
       },
       boxShadow: {
         "ds-card": "var(--ds-shadow-card)",
+        // Sombras do TailAdmin (theme-xs/sm), usadas no header/dropdowns do admin.
+        "theme-xs": "0px 1px 2px 0px rgba(16, 24, 40, 0.05)",
+        "theme-sm":
+          "0px 1px 3px 0px rgba(16, 24, 40, 0.1), 0px 1px 2px 0px rgba(16, 24, 40, 0.06)",
       },
       transitionTimingFunction: {
         // Curva "snap" assinatura.

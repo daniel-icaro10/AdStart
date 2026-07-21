@@ -122,10 +122,10 @@ export function AssetsTableClient({
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="bg-accent/50 hover:bg-accent/50">
+            <TableRow className="hover:bg-transparent">
               <TableHead>Ativo</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Fornecedor</TableHead>
