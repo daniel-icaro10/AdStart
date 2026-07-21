@@ -43,13 +43,15 @@ export function AdminMobileNav() {
           </DialogPrimitive.Title>
 
           <div className="flex h-20 items-center justify-between">
-            <Image
-              src="/logo.png"
-              alt="adStart"
-              width={1104}
-              height={366}
-              className="h-7 w-auto"
-            />
+            <span className="inline-flex items-center rounded-lg bg-white/90 px-2.5 py-1.5 shadow-sm ring-1 ring-black/5">
+              <Image
+                src="/logo.png"
+                alt="adStart"
+                width={1104}
+                height={366}
+                className="h-7 w-auto"
+              />
+            </span>
             <DialogPrimitive.Close
               aria-label="Fechar menu"
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
