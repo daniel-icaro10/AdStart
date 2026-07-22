@@ -84,7 +84,7 @@ export function AdminHeader({ userEmail, userRole, pendingCount = 0 }: AdminHead
           onClick={() => setOpen(true)}
           aria-label="Conta do administrador"
           title="Conta"
-          className="flex items-center gap-2 rounded-lg bg-sidebar py-1 pl-1 pr-2 transition-colors hover:brightness-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full ring-1 ring-border">
             <Image
@@ -103,7 +103,6 @@ export function AdminHeader({ userEmail, userRole, pendingCount = 0 }: AdminHead
         <Button
           variant="ghost"
           size="sm"
-          className="bg-sidebar hover:bg-sidebar hover:brightness-125"
           onClick={() => signOut({ callbackUrl: "/login" })}
         >
           <LogOut className="h-4 w-4" />
