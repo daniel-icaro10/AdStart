@@ -52,17 +52,18 @@ export function PeriodSelector({ preset, inicio, fim }: PeriodSelectorProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
+      <div className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-border bg-card/80 p-1 shadow-sm backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {PRESETS.map((p) => (
           <button
             key={p.value}
             type="button"
             onClick={() => setPreset(p.value)}
+            aria-pressed={preset === p.value}
             className={cn(
-              "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+              "shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-colors",
               preset === p.value
-                ? "border-primary bg-primary/15 text-foreground"
-                : "border-border text-muted-foreground hover:text-foreground",
+                ? "bg-primary text-primary-foreground shadow-[0_6px_24px_-6px_rgb(var(--brand)/0.8)]"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {p.label}
