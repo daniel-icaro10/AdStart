@@ -18,11 +18,22 @@ export function AdminSidebar() {
   return (
     <aside
       className={cn(
-        "hidden shrink-0 flex-col border-r border-border bg-card px-5 transition-[width] duration-200 lg:flex",
+        "relative hidden shrink-0 flex-col overflow-hidden border-r border-border bg-card px-5 transition-[width] duration-200 lg:flex",
         collapsed ? "w-[90px]" : "w-[290px]",
       )}
     >
-      <div className="flex h-32 items-center justify-center">
+      {/* fundo: mesma grade sutil + glows do hero da landing */}
+      <div aria-hidden className="ad-sidebar-grid pointer-events-none absolute inset-0" />
+      <div
+        aria-hidden
+        className="ad-float pointer-events-none absolute -right-16 -top-10 h-56 w-56 rounded-full bg-brand/20 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="ad-float pointer-events-none absolute -left-16 bottom-0 h-56 w-56 rounded-full bg-brand/10 blur-3xl [animation-delay:-3.5s]"
+      />
+
+      <div className="relative z-10 flex h-32 items-center justify-center">
         {collapsed ? (
           <Link
             href="/admin"
@@ -59,12 +70,12 @@ export function AdminSidebar() {
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4">
+      <nav className="relative z-10 flex-1 overflow-y-auto py-4">
         <AdminNavList iconOnly={collapsed} />
       </nav>
 
       {!collapsed && (
-        <div className="border-t border-border py-4 text-xs text-muted-foreground">
+        <div className="relative z-10 border-t border-border py-4 text-xs text-muted-foreground">
           Painel administrativo
         </div>
       )}

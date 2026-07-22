@@ -403,6 +403,15 @@
     mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
   }
 
+  /* Mesma grade do hero, mas com cor por token (se adapta ao claro/escuro do admin). */
+  .ad-sidebar-grid {
+    background-image:
+      linear-gradient(rgb(var(--foreground) / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: linear-gradient(to bottom, black, transparent 75%);
+  }
+
   /* Scrollbar discreta. */
   .scrollbar-subtle {
     scrollbar-width: thin;
