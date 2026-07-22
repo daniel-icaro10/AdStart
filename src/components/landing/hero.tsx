@@ -54,61 +54,45 @@ export function Hero() {
           </div>
         </nav>
 
-        {/* conteúdo central: logo grande + mensagem + conceitos, cada um animando em sequência */}
+        {/* conteúdo central: tudo nasce da linha — o grupo de cima sobe, o de baixo desce */}
         <div className="flex flex-col items-center py-10 text-center sm:py-16">
-          <Image
-            src="/logo-white.png"
-            alt="Startfy"
-            width={1774}
-            height={887}
-            priority
-            className="animate-fade-in h-20 w-auto sm:h-28"
-          />
-
-          <p
-            className="animate-fade-in mt-6 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground [animation-delay:150ms] [animation-fill-mode:both] sm:text-sm"
-          >
-            Ativos · BM · Perfil · Página
-          </p>
-
-          {/* "CONCEITO": as duas linhas nascem no centro e crescem cada uma pro seu lado */}
-          <div
-            className="mt-10 flex w-full max-w-xl items-center gap-4 [animation-delay:280ms]"
-          >
-            <span
-              aria-hidden
-              className="ad-split-line h-px flex-1 origin-right bg-border [animation-delay:280ms]"
+          {/* grupo de cima: logo + tagline, sobem a partir da linha */}
+          <div className="flex flex-col items-center">
+            <Image
+              src="/logo-white.png"
+              alt="Startfy"
+              width={1774}
+              height={887}
+              priority
+              className="ad-rise-up h-20 w-auto sm:h-28 [animation-delay:300ms]"
             />
-            <span className="animate-fade-in shrink-0 text-xs font-semibold uppercase tracking-[0.25em] text-faint [animation-delay:280ms] [animation-fill-mode:both]">
-              Conceito
-            </span>
-            <span
-              aria-hidden
-              className="ad-split-line h-px flex-1 origin-left bg-border [animation-delay:280ms]"
-            />
+            <p className="ad-rise-up mt-6 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground [animation-delay:420ms] sm:text-sm">
+              Ativos · BM · Perfil · Página
+            </p>
           </div>
 
-          {/* conceitos: a metade esquerda entra vindo do centro pra esquerda, a direita o oposto */}
-          <div className="mt-6 flex flex-wrap items-start justify-center gap-x-8 gap-y-6 sm:gap-x-12">
-            {CONCEITOS.map((c, i) => {
-              const half = i < CONCEITOS.length / 2 ? "ad-split-left" : "ad-split-right";
-              // distância até o centro do grupo: os do meio "nascem" primeiro, os das pontas depois.
-              const distanceFromCenter = Math.abs(i - (CONCEITOS.length - 1) / 2);
-              return (
-                <div
-                  key={c.label}
-                  className={`${half} flex flex-col items-center gap-2`}
-                  style={{ animationDelay: `${480 + distanceFromCenter * 90}ms` }}
-                >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-primary">
-                    <c.Icon className="h-5 w-5" />
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {c.label}
-                  </span>
-                </div>
-              );
-            })}
+          {/* linha central: nasce no meio e cresce pros dois lados; tudo mais surge a partir dela */}
+          <span
+            aria-hidden
+            className="ad-split-line mt-10 h-px w-full max-w-xl bg-border"
+          />
+
+          {/* grupo de baixo: conceitos, descem a partir da linha */}
+          <div className="mt-10 flex flex-wrap items-start justify-center gap-x-8 gap-y-6 sm:gap-x-12">
+            {CONCEITOS.map((c, i) => (
+              <div
+                key={c.label}
+                className="ad-fall-down flex flex-col items-center gap-2"
+                style={{ animationDelay: `${400 + i * 110}ms` }}
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-primary">
+                  <c.Icon className="h-5 w-5" />
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {c.label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

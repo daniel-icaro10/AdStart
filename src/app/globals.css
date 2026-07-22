@@ -289,24 +289,24 @@
     transform: translateY(0);
   }
 }
-@keyframes ad-split-left {
+@keyframes ad-rise-up {
   from {
     opacity: 0;
-    transform: translateX(28px);
+    transform: translateY(26px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
-@keyframes ad-split-right {
+@keyframes ad-fall-down {
   from {
     opacity: 0;
-    transform: translateX(-28px);
+    transform: translateY(-26px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 @keyframes ad-split-line {
@@ -382,16 +382,16 @@
     animation: fade-in 0.4s ease-out both;
   }
 
-  /* Conteúdo "nascendo do meio": metade vai pra esquerda, metade pra direita. */
-  .ad-split-left {
-    animation: ad-split-left 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Conteúdo "nascendo da linha central": um grupo sobe, o outro desce. */
+  .ad-rise-up {
+    animation: ad-rise-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
-  .ad-split-right {
-    animation: ad-split-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  .ad-fall-down {
+    animation: ad-fall-down 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
-  /* Linha que "desenha" a partir do centro — usar com transform-origin no elemento. */
+  /* Linha que "desenha" a partir do centro pros dois lados. */
   .ad-split-line {
-    animation: ad-split-line 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: ad-split-line 1s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   /* Grade sutil de fundo do hero (sem imagem externa). */
