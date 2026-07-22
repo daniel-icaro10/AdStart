@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import {
   MessageCircle,
@@ -44,22 +43,7 @@ export function Hero() {
       />
 
       <div className="container relative flex flex-col">
-        <nav className="flex items-start justify-between gap-3 pt-4">
-          <Link
-            href="/"
-            aria-label="Startfy — início"
-            className="inline-flex items-center transition-transform hover:scale-[1.02]"
-          >
-            <Image
-              src="/logo-white.png"
-              alt="Startfy"
-              width={1774}
-              height={887}
-              priority
-              className="h-9 w-auto sm:h-11"
-            />
-          </Link>
-
+        <nav className="flex items-start justify-end gap-3 pt-4">
           <div className="flex items-center gap-1 sm:gap-2">
             <Button asChild variant="whatsapp" size="sm">
               <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
@@ -77,7 +61,8 @@ export function Hero() {
             alt="Startfy"
             width={1774}
             height={887}
-            className="animate-fade-in h-16 w-auto sm:h-20"
+            priority
+            className="animate-fade-in h-20 w-auto sm:h-28"
           />
 
           <p
@@ -86,26 +71,20 @@ export function Hero() {
             Ativos · BM · Perfil · Página
           </p>
 
-          <h1
-            className="ad-text-gradient animate-fade-in mt-3 max-w-2xl text-2xl font-extrabold leading-tight [animation-delay:280ms] [animation-fill-mode:both] sm:text-4xl"
-          >
-            Venda com segurança, resultados que ficam.
-          </h1>
-
           {/* "CONCEITO": as duas linhas nascem no centro e crescem cada uma pro seu lado */}
           <div
-            className="mt-10 flex w-full max-w-xl items-center gap-4 [animation-delay:420ms]"
+            className="mt-10 flex w-full max-w-xl items-center gap-4 [animation-delay:280ms]"
           >
             <span
               aria-hidden
-              className="ad-split-line h-px flex-1 origin-right bg-border [animation-delay:420ms]"
+              className="ad-split-line h-px flex-1 origin-right bg-border [animation-delay:280ms]"
             />
-            <span className="animate-fade-in shrink-0 text-xs font-semibold uppercase tracking-[0.25em] text-faint [animation-delay:420ms] [animation-fill-mode:both]">
+            <span className="animate-fade-in shrink-0 text-xs font-semibold uppercase tracking-[0.25em] text-faint [animation-delay:280ms] [animation-fill-mode:both]">
               Conceito
             </span>
             <span
               aria-hidden
-              className="ad-split-line h-px flex-1 origin-left bg-border [animation-delay:420ms]"
+              className="ad-split-line h-px flex-1 origin-left bg-border [animation-delay:280ms]"
             />
           </div>
 
@@ -119,7 +98,7 @@ export function Hero() {
                 <div
                   key={c.label}
                   className={`${half} flex flex-col items-center gap-2`}
-                  style={{ animationDelay: `${600 + distanceFromCenter * 90}ms` }}
+                  style={{ animationDelay: `${480 + distanceFromCenter * 90}ms` }}
                 >
                   <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-primary">
                     <c.Icon className="h-5 w-5" />
