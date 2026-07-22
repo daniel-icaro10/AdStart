@@ -42,26 +42,26 @@ export function AdminMobileNav() {
             Menu administrativo
           </DialogPrimitive.Title>
 
-          <div className="flex h-20 items-center justify-between">
+          <div className="flex h-28 items-center justify-between">
             <span className="inline-flex items-center">
               <Image
                 src="/logo-black.png"
                 alt="Startfy"
                 width={1774}
                 height={887}
-                className="h-10 w-auto dark:hidden"
+                className="h-16 w-auto dark:hidden"
               />
               <Image
                 src="/logo-white.png"
                 alt="Startfy"
                 width={1774}
                 height={887}
-                className="hidden h-10 w-auto dark:block"
+                className="hidden h-16 w-auto dark:block"
               />
             </span>
             <DialogPrimitive.Close
               aria-label="Fechar menu"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
             >
               <X className="h-5 w-5" />
             </DialogPrimitive.Close>
