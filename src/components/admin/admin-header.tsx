@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
-import { LogOut, Mail, Search, Bell, ShieldCheck, PanelLeft } from "lucide-react";
+import { LogOut, Mail, Bell, ShieldCheck, PanelLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,14 +49,6 @@ export function AdminHeader({ userEmail, userRole, pendingCount = 0 }: AdminHead
         >
           <PanelLeft className="h-5 w-5" />
         </button>
-        <div className="relative hidden lg:block">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Buscar..."
-            className="h-11 w-[280px] rounded-lg border border-border bg-transparent py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10 xl:w-[350px]"
-          />
-        </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
@@ -78,7 +70,7 @@ export function AdminHeader({ userEmail, userRole, pendingCount = 0 }: AdminHead
           onClick={() => setOpen(true)}
           aria-label="Conta do administrador"
           title="Conta"
-          className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex items-center gap-2 rounded-lg bg-sidebar py-1 pl-1 pr-2 transition-colors hover:brightness-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full ring-1 ring-border">
             <Image
@@ -97,6 +89,7 @@ export function AdminHeader({ userEmail, userRole, pendingCount = 0 }: AdminHead
         <Button
           variant="ghost"
           size="sm"
+          className="bg-sidebar hover:bg-sidebar hover:brightness-125"
           onClick={() => signOut({ callbackUrl: "/login" })}
         >
           <LogOut className="h-4 w-4" />

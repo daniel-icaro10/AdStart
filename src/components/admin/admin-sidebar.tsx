@@ -18,7 +18,7 @@ export function AdminSidebar() {
   return (
     <aside
       className={cn(
-        "relative hidden shrink-0 flex-col overflow-hidden border-r border-border bg-card px-5 transition-[width] duration-200 lg:flex",
+        "relative hidden shrink-0 flex-col overflow-hidden border-r border-border bg-sidebar px-5 transition-[width] duration-200 lg:flex",
         collapsed ? "w-[90px]" : "w-[290px]",
       )}
     >

@@ -88,6 +88,8 @@ const config: Config = {
           DEFAULT: rgb("--card"),
           foreground: rgb("--card-foreground"),
         },
+        // Fundo próprio da sidebar do admin — independente do --card (cards de dados).
+        sidebar: rgb("--sidebar-bg"),
         // Accent azul cirúrgico (preços, glows, badges especiais).
         brand: {
           DEFAULT: rgb("--brand"),

@@ -68,6 +68,7 @@
     --card-foreground: 52 64 84;
     --popover: 255 255 255;
     --popover-foreground: 52 64 84;
+    --sidebar-bg: 255 255 255; /* white — igual ao card no claro */
 
     --primary: 70 95 255; /* brand-500 #465FFF */
     --primary-foreground: 255 255 255;
@@ -99,13 +100,14 @@
   }
 
   .dark .admin-theme {
-    --background: 16 24 40; /* gray-900 */
+    --background: 16 24 40; /* gray-900 #101828 — azul de antes */
     --foreground: 208 213 221; /* gray-300 */
     --foreground-strong: 255 255 255;
-    --card: 26 34 49; /* gray-dark #1A2231 */
+    --card: 26 34 49; /* gray-dark #1A2231 — cards de dados, azul de antes */
     --card-foreground: 208 213 221;
     --popover: 34 44 62; /* leve elevação sobre o card */
     --popover-foreground: 208 213 221;
+    --sidebar-bg: 8 8 9; /* #080809 — preto quase-puro da landing, só na sidebar */
 
     --primary: 117 146 255; /* brand-400 */
     --primary-foreground: 255 255 255;
