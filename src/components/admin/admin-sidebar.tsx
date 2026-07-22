@@ -45,7 +45,7 @@ export function AdminSidebar() {
               width={1774}
               height={887}
               priority
-              className="h-7 w-auto dark:hidden"
+              className="h-10 w-auto dark:hidden"
             />
             <Image
               src="/logo-white.png"
@@ -53,7 +53,7 @@ export function AdminSidebar() {
               width={1774}
               height={887}
               priority
-              className="hidden h-7 w-auto dark:block"
+              className="hidden h-10 w-auto dark:block"
             />
           </Link>
         )}

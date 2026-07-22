@@ -51,15 +51,15 @@ export function Hero() {
           <Link
             href="/"
             aria-label="Startfy — início"
-            className="inline-flex items-center rounded-xl bg-white/90 px-3 py-2 shadow-sm ring-1 ring-black/5 backdrop-blur transition-transform hover:scale-[1.02]"
+            className="inline-flex items-center transition-transform hover:scale-[1.02]"
           >
             <Image
-              src="/logo-black.png"
+              src="/logo-white.png"
               alt="Startfy"
               width={1774}
               height={887}
               priority
-              className="h-7 w-auto sm:h-8"
+              className="h-11 w-auto sm:h-14"
             />
           </Link>
 
