@@ -19,10 +19,10 @@ export function Footer() {
           className="inline-flex items-center rounded-xl bg-white/90 px-3 py-2 shadow-sm ring-1 ring-black/5"
         >
           <Image
-            src="/logo.png"
+            src="/logo-black.png"
             alt={siteConfig.agencyName}
-            width={1104}
-            height={366}
+            width={1774}
+            height={887}
             className="h-7 w-auto"
           />
         </Link>

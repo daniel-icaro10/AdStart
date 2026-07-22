@@ -23,30 +23,40 @@ export function AdminSidebar() {
       )}
     >
       <div className={cn("flex h-20 items-center", collapsed && "justify-center")}>
-        <Link
-          href="/admin"
-          aria-label="adStart"
-          className="inline-flex items-center rounded-lg bg-white/90 shadow-sm ring-1 ring-black/5"
-        >
-          {collapsed ? (
+        {collapsed ? (
+          <Link
+            href="/admin"
+            aria-label="Startfy"
+            className="inline-flex items-center rounded-lg bg-white/90 shadow-sm ring-1 ring-black/5"
+          >
             <Image
               src="/icon.png"
-              alt="adStart"
+              alt="Startfy"
               width={32}
               height={32}
               className="h-8 w-8 p-1"
             />
-          ) : (
+          </Link>
+        ) : (
+          <Link href="/admin" aria-label="Startfy">
             <Image
-              src="/logo.png"
-              alt="adStart"
-              width={1104}
-              height={366}
+              src="/logo-black.png"
+              alt="Startfy"
+              width={1774}
+              height={887}
               priority
-              className="h-7 w-auto px-2.5 py-1.5"
+              className="h-7 w-auto dark:hidden"
             />
-          )}
-        </Link>
+            <Image
+              src="/logo-white.png"
+              alt="Startfy"
+              width={1774}
+              height={887}
+              priority
+              className="hidden h-7 w-auto dark:block"
+            />
+          </Link>
+        )}
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4">

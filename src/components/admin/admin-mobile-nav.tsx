@@ -43,13 +43,20 @@ export function AdminMobileNav() {
           </DialogPrimitive.Title>
 
           <div className="flex h-20 items-center justify-between">
-            <span className="inline-flex items-center rounded-lg bg-white/90 px-2.5 py-1.5 shadow-sm ring-1 ring-black/5">
+            <span className="inline-flex items-center">
               <Image
-                src="/logo.png"
-                alt="adStart"
-                width={1104}
-                height={366}
-                className="h-7 w-auto"
+                src="/logo-black.png"
+                alt="Startfy"
+                width={1774}
+                height={887}
+                className="h-7 w-auto dark:hidden"
+              />
+              <Image
+                src="/logo-white.png"
+                alt="Startfy"
+                width={1774}
+                height={887}
+                className="hidden h-7 w-auto dark:block"
               />
             </span>
             <DialogPrimitive.Close

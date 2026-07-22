@@ -50,14 +50,14 @@ export function Hero() {
         <nav className="flex items-start justify-between gap-3 pt-4">
           <Link
             href="/"
-            aria-label="adStart — início"
+            aria-label="Startfy — início"
             className="inline-flex items-center rounded-xl bg-white/90 px-3 py-2 shadow-sm ring-1 ring-black/5 backdrop-blur transition-transform hover:scale-[1.02]"
           >
             <Image
-              src="/logo.png"
-              alt="adStart"
-              width={1104}
-              height={366}
+              src="/logo-black.png"
+              alt="Startfy"
+              width={1774}
+              height={887}
               priority
               className="h-7 w-auto sm:h-8"
             />
