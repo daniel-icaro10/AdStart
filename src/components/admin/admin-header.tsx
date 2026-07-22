@@ -38,8 +38,22 @@ export function AdminHeader({ userEmail, userRole, pendingCount = 0 }: AdminHead
   const funcao = ROLE_LABELS[userRole] ?? userRole;
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-card px-4 py-3 shadow-theme-xs sm:px-6">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-30 flex items-center justify-between overflow-hidden border-b border-border bg-sidebar px-4 py-3 shadow-theme-xs sm:px-6">
+      {/* mesmo fundo (grade + glow) da sidebar */}
+      <div
+        aria-hidden
+        className="ad-sidebar-grid pointer-events-none absolute inset-0 [background-size:20px_20px] [mask-image:none]"
+      />
+      <div
+        aria-hidden
+        className="ad-float pointer-events-none absolute -right-10 -top-24 h-56 w-56 rounded-full bg-brand/20 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="ad-float pointer-events-none absolute -left-10 -bottom-24 h-56 w-56 rounded-full bg-brand/10 blur-3xl [animation-delay:-3.5s]"
+      />
+
+      <div className="relative z-10 flex items-center gap-3">
         <AdminMobileNav />
         <button
           type="button"
@@ -51,7 +65,7 @@ export function AdminHeader({ userEmail, userRole, pendingCount = 0 }: AdminHead
         </button>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="relative z-10 flex items-center gap-2 sm:gap-3">
         <ThemeToggle />
 
         <button
