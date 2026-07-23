@@ -22,7 +22,9 @@ export default async function HomePage() {
     ]);
 
   return (
-    <main className="min-h-screen">
+    // "dark" fixo: a landing é sempre escura e não deve reagir ao toggle
+    // claro/escuro do admin (que marca <html> globalmente via next-themes).
+    <main className="dark min-h-screen">
       <Hero />
 
       <CatalogTabs

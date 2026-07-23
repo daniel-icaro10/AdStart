@@ -118,7 +118,8 @@ export function AssetDetailModal({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      {/* dark fixo: modal é portalado pra fora do <main dark>, precisa reforçar */}
+      <DialogContent className="dark">
         <DialogHeader>
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge className={cn("border", CATEGORIA_META[categoria].badgeClass)}>
