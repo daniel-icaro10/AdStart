@@ -23,7 +23,7 @@ export function AdminSidebar() {
       )}
     >
       {/* fundo: mesma grade sutil + glows do hero da landing */}
-      <div aria-hidden className="ad-sidebar-grid pointer-events-none absolute inset-0" />
+      <div aria-hidden className="ad-admin-mark-bg pointer-events-none absolute inset-0" />
       <div
         aria-hidden
         className="ad-float pointer-events-none absolute -right-16 -top-10 h-56 w-56 rounded-full bg-brand/20 blur-3xl"

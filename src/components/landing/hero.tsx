@@ -32,7 +32,7 @@ export function Hero() {
   return (
     <header className="relative overflow-hidden border-b border-border">
       {/* fundo: grid sutil + glows da marca (sem imagem) */}
-      <div aria-hidden className="ad-hero-grid pointer-events-none absolute inset-0" />
+      <div aria-hidden className="ad-landing-mark-bg pointer-events-none absolute inset-0" />
       <div
         aria-hidden
         className="ad-float pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-brand/20 blur-3xl"

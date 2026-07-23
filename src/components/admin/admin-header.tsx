@@ -39,10 +39,10 @@ export function AdminHeader({ userEmail, userRole, pendingCount = 0 }: AdminHead
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between overflow-hidden border-b border-border bg-sidebar px-4 py-3 shadow-theme-xs sm:px-6">
-      {/* mesmo fundo (grade + glow) da sidebar */}
+      {/* mesmo fundo (marca espalhada + glow) da sidebar */}
       <div
         aria-hidden
-        className="ad-sidebar-grid pointer-events-none absolute inset-0 [background-size:20px_20px] [mask-image:none]"
+        className="ad-admin-mark-bg pointer-events-none absolute inset-0 [mask-image:none]"
       />
       <div
         aria-hidden
