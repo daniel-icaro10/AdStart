@@ -49,14 +49,14 @@ export function AdminMobileNav() {
                 alt="Startfy"
                 width={1774}
                 height={887}
-                className="h-16 w-auto dark:hidden"
+                className="h-20 w-auto dark:hidden"
               />
               <Image
                 src="/logo-white.png"
                 alt="Startfy"
                 width={1774}
                 height={887}
-                className="hidden h-16 w-auto dark:block"
+                className="hidden h-20 w-auto dark:block"
               />
             </span>
             <DialogPrimitive.Close

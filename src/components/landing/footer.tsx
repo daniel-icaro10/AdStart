@@ -19,7 +19,7 @@ export function Footer() {
             alt={siteConfig.agencyName}
             width={1774}
             height={887}
-            className="h-16 w-auto"
+            className="h-20 w-auto"
           />
         </Link>
 

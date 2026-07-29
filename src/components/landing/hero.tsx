@@ -64,7 +64,7 @@ export function Hero() {
               width={1774}
               height={887}
               priority
-              className="ad-rise-up h-20 w-auto sm:h-28 [animation-delay:300ms]"
+              className="ad-rise-up h-24 w-auto sm:h-32 [animation-delay:300ms]"
             />
             <p className="ad-rise-up mt-6 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground [animation-delay:420ms] sm:text-sm">
               Ativos · BM · Perfil · Página
