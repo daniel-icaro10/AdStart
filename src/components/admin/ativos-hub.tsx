@@ -1,7 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Boxes, FileText, AtSign, Wallet, Download, Bell } from "lucide-react";
+import {
+  Boxes,
+  FileText,
+  AtSign,
+  Wallet,
+  Download,
+  Bell,
+  CheckCircle2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AdminTabBar } from "@/components/admin/admin-tab-bar";
@@ -15,7 +23,7 @@ import type { AssetWithDetails, PageWithImages } from "@/types";
 import type { Categoria } from "@/lib/constants";
 import type { AtivosPageResult } from "@/lib/financeiro";
 
-export type AtivosTab = "BMS" | "PAGINAS" | "PERFIS" | "FINANCEIRO";
+export type AtivosTab = "DISPONIVEIS" | "BMS" | "PAGINAS" | "PERFIS" | "FINANCEIRO";
 
 /**
  * Hub da aba "Ativos": sub-abas BMs / Páginas / Perfis / Financeiro.
@@ -29,7 +37,7 @@ export function AtivosHub({
   perfis,
   financeiro,
   fornecedores,
-  initialTab = "BMS",
+  initialTab = "DISPONIVEIS",
 }: {
   assets: AssetWithDetails[];
   order: Categoria[];
@@ -41,7 +49,18 @@ export function AtivosHub({
 }) {
   const [tab, setTab] = React.useState<AtivosTab>(initialTab);
 
+  const disponiveis = React.useMemo(
+    () => assets.filter((a) => a.statusVenda === "DISPONIVEL"),
+    [assets],
+  );
+
   const tabs = [
+    {
+      value: "DISPONIVEIS",
+      label: "Disponíveis",
+      Icon: CheckCircle2,
+      count: disponiveis.length,
+    },
     { value: "BMS", label: "BMs", Icon: Boxes, count: assets.length },
     { value: "PAGINAS", label: "Páginas", Icon: FileText, count: paginas.length },
     { value: "PERFIS", label: "Perfis", Icon: AtSign, count: perfis.length },
@@ -80,7 +99,9 @@ export function AtivosHub({
         }))}
       />
 
-      {tab === "BMS" ? (
+      {tab === "DISPONIVEIS" ? (
+        <AssetsManager assets={disponiveis} order={order} />
+      ) : tab === "BMS" ? (
         <AssetsManager assets={assets} order={order} />
       ) : tab === "PAGINAS" ? (
         <PagesManager pages={paginas} categoria="PAGINA" />

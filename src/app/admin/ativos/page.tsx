@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 const PAGE_SIZE = 20;
 
 const TAB_MAP: Record<string, AtivosTab> = {
+  disponiveis: "DISPONIVEIS",
   paginas: "PAGINAS",
   perfis: "PERFIS",
   financeiro: "FINANCEIRO",
@@ -51,7 +52,7 @@ export default async function AdminAtivosPage({
       getFornecedores(),
     ]);
 
-  const initialTab = TAB_MAP[searchParams.tab ?? ""] ?? "BMS";
+  const initialTab = TAB_MAP[searchParams.tab ?? ""] ?? "DISPONIVEIS";
 
   return (
     <AtivosHub
