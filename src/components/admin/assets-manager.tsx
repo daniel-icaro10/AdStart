@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Boxes } from "lucide-react";
+import { Plus, Boxes, Star, Users, CalendarDays } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,27 @@ import {
 } from "@/lib/constants";
 import type { AssetWithDetails } from "@/types";
 
+/** Cor sólida do chip de status (estilo label do Trello) — só usada no card. */
+const STATUS_DOT_CLASS: Record<StatusVenda, string> = {
+  DISPONIVEL: "bg-emerald-500 text-white",
+  RESERVADO: "bg-amber-500 text-white",
+  VENDIDO: "bg-rose-500 text-white",
+  PERDIDO: "bg-zinc-500 text-white",
+};
+
+/** Dias em estoque: entrada até a saída (se já saiu) ou até hoje. */
+function diasEstoque(entrada: Date | null, saida: Date | null): number | null {
+  if (!entrada) return null;
+  const start = new Date(entrada).getTime();
+  const end = saida ? new Date(saida).getTime() : Date.now();
+  return Math.max(0, Math.floor((end - start) / 86_400_000));
+}
+
 /**
- * Visão dos ativos no estilo Notion: board com colunas por categoria (todas,
+ * Visão dos ativos no estilo Trello: board com colunas por categoria (todas,
  * inclusive vazias); cada card é clicável e abre um painel de edição (modal).
+ * Faixa lateral colorida indica a categoria; chips coloridos substituem os
+ * badges de texto uniformes.
  */
 export function AssetsManager({
   assets,
@@ -64,6 +82,8 @@ export function AssetsManager({
     const categoria = a.categoria as Categoria;
     const status = a.statusVenda as StatusVenda;
     const emoji = getIconeEmoji(a.icone);
+    const dias = diasEstoque(a.dataEntrada ?? a.createdAt, a.dataSaida);
+
     return (
       <div
         key={a.id}
@@ -76,64 +96,99 @@ export function AssetsManager({
             openEdit(a);
           }
         }}
-        className={cn(
-          "group relative cursor-pointer rounded-lg p-2.5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          CATEGORIA_META[categoria].cardClass,
-        )}
+        className="group relative flex cursor-pointer overflow-hidden rounded-xl border border-border bg-card text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        {/* excluir (não dispara a edição) */}
+        {/* faixa lateral colorida por categoria */}
         <span
-          className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <DeleteButton id={a.id} label={a.codigo} action={deleteAsset} />
-        </span>
+          className={cn("w-1.5 shrink-0", CATEGORIA_META[categoria].accentClass)}
+          aria-hidden
+        />
 
-        <div className="flex flex-wrap items-center gap-1.5 pr-8">
-          <Badge className={cn("border", CATEGORIA_META[categoria].badgeClass)}>
-            {CATEGORIA_META[categoria].label}
-          </Badge>
-          <Badge className={cn("border", STATUS_VENDA_META[status].badgeClass)}>
-            {STATUS_VENDA_META[status].label}
-          </Badge>
-          {a.tier != null && (
-            <Badge className={TIER_BADGE_CLASS}>Tier {a.tier}</Badge>
-          )}
-          {a.destaque && (
-            <Badge className="border border-warning/30 bg-warning/15 text-warning">
-              Nova
-            </Badge>
-          )}
-        </div>
-
-        <div className="mt-2 flex items-center gap-1.5">
-          {emoji && <span className="text-base leading-none">{emoji}</span>}
-          <h3 className="text-[13px] font-semibold leading-snug">{a.titulo}</h3>
-        </div>
-
-        {a.conteudo && (
-          <p className="mt-1.5 whitespace-pre-line text-[10.5px] leading-snug text-muted-foreground">
-            {a.conteudo}
-          </p>
-        )}
-
-        {a.valor > 0 && (
-          <div className="mt-2 flex items-baseline gap-1.5 border-t border-border pt-2">
-            {a.precoAntigo != null && a.precoAntigo > a.valor && (
-              <span className="text-[10px] tabular-nums text-muted-foreground line-through">
-                {formatCurrency(a.precoAntigo, "BRL")}
-              </span>
-            )}
-            <span className="text-sm font-bold tabular-nums">
-              {formatCurrency(a.valor, "BRL")}
+        <div className="min-w-0 flex-1 p-2.5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-1.5">
+              {emoji && <span className="text-base leading-none">{emoji}</span>}
+              <h3 className="text-[13px] font-semibold leading-snug">{a.titulo}</h3>
+            </div>
+            {/* excluir (não dispara a edição) */}
+            <span
+              className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <DeleteButton id={a.id} label={a.codigo} action={deleteAsset} />
             </span>
-            {a.precoAntigo != null && a.precoAntigo > a.valor && (
-              <span className="text-[10px] font-semibold text-emerald-400">
-                -{Math.round((1 - a.valor / a.precoAntigo) * 100)}%
-              </span>
+          </div>
+
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              <span
+                className={cn("h-1.5 w-1.5 rounded-full", CATEGORIA_META[categoria].accentClass)}
+                aria-hidden
+              />
+              {CATEGORIA_META[categoria].label}
+            </span>
+            <Badge
+              className={cn(
+                "rounded-full border-transparent px-1.5 py-0.5 text-[10px] font-semibold",
+                STATUS_DOT_CLASS[status],
+              )}
+            >
+              {STATUS_VENDA_META[status].label}
+            </Badge>
+            {a.tier != null && (
+              <Badge
+                className={cn(TIER_BADGE_CLASS, "rounded-full px-1.5 py-0.5 text-[10px]")}
+              >
+                Tier {a.tier}
+              </Badge>
+            )}
+            {a.destaque && (
+              <Badge className="gap-0.5 rounded-full border-warning/30 bg-warning/15 px-1.5 py-0.5 text-[10px] text-warning">
+                <Star className="h-2.5 w-2.5 fill-current" />
+                Nova
+              </Badge>
             )}
           </div>
-        )}
+
+          {a.conteudo && (
+            <p className="mt-1.5 line-clamp-2 whitespace-pre-line text-[10.5px] leading-snug text-muted-foreground">
+              {a.conteudo}
+            </p>
+          )}
+
+          <div className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2">
+            <div className="flex items-baseline gap-1.5">
+              {a.precoAntigo != null && a.precoAntigo > a.valor && (
+                <span className="text-[10px] tabular-nums text-muted-foreground line-through">
+                  {formatCurrency(a.precoAntigo, "BRL")}
+                </span>
+              )}
+              <span className="text-sm font-bold tabular-nums">
+                {a.valor > 0 ? formatCurrency(a.valor, "BRL") : "—"}
+              </span>
+              {a.precoAntigo != null && a.precoAntigo > a.valor && (
+                <span className="text-[10px] font-semibold text-emerald-400">
+                  -{Math.round((1 - a.valor / a.precoAntigo) * 100)}%
+                </span>
+              )}
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2 text-[10px] text-muted-foreground">
+              {a.contas.length > 0 && (
+                <span className="inline-flex items-center gap-0.5">
+                  <Users className="h-3 w-3" />
+                  {a.contas.length}
+                </span>
+              )}
+              {dias != null && (
+                <span className="inline-flex items-center gap-0.5">
+                  <CalendarDays className="h-3 w-3" />
+                  {dias}d
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
