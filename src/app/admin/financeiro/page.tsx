@@ -9,6 +9,7 @@ import { FinanceiroCharts } from "@/components/admin/financeiro/financeiro-chart
 import { formatCurrency } from "@/lib/format";
 import {
   resolverPeriodo,
+  getDadosFinanceirosBase,
   getMetricasFinanceiras,
   getSerieMensal,
 } from "@/lib/financeiro";
@@ -34,9 +35,10 @@ export default async function FinanceiroPage({
     searchParams.fim,
   );
 
+  const base = await getDadosFinanceirosBase();
   const [metricas, serie] = await Promise.all([
-    getMetricasFinanceiras(periodo),
-    getSerieMensal(6),
+    getMetricasFinanceiras(periodo, base),
+    getSerieMensal(6, base),
   ]);
 
   const exportHref = `/admin/financeiro/export?tipo=resumo&${new URLSearchParams(

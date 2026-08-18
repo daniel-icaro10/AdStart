@@ -142,10 +142,15 @@ function NovoCustoForm({ onDone }: { onDone: () => void }) {
     e.preventDefault();
     setPending(true);
     setError(null);
-    const res = await criarCusto({ descricao, categoria, valor, data, recorrente });
-    setPending(false);
-    if (res.ok) onDone();
-    else setError(res.error);
+    try {
+      const res = await criarCusto({ descricao, categoria, valor, data, recorrente });
+      if (res.ok) onDone();
+      else setError(res.error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Algo deu errado. Tente de novo.");
+    } finally {
+      setPending(false);
+    }
   };
 
   return (

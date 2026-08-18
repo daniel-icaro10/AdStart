@@ -66,13 +66,14 @@ export function ClientLedger({
     initialEntries.map(toRow),
   );
   const [busy, setBusy] = React.useState(false);
+  const [ledgerError, setLedgerError] = React.useState<string | null>(null);
   const rowsRef = React.useRef(rows);
   rowsRef.current = rows;
 
   const [notes, setNotes] = React.useState(initialNotes ?? "");
-  const [notesState, setNotesState] = React.useState<"idle" | "saving" | "saved">(
-    "idle",
-  );
+  const [notesState, setNotesState] = React.useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
 
   const patchLocal = (id: string, patch: Partial<Row>) =>
     setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
@@ -86,9 +87,30 @@ export function ClientLedger({
       status: row.status,
     });
   };
+
+  // Encadeia os saves por linha: garante que dois blurs seguidos na mesma
+  // linha (ex.: editar Data, depois Descrição) sejam persistidos em ordem —
+  // cada save lê o estado mais atual da linha só quando é a sua vez de
+  // rodar, então nunca sobrescreve com um snapshot antigo (lost update).
+  const chainsRef = React.useRef<Record<string, Promise<void>>>({});
   const persistById = (id: string) => {
-    const row = rowsRef.current.find((r) => r.id === id);
-    if (row) void persist(row);
+    const prev = chainsRef.current[id] ?? Promise.resolve();
+    const next = prev
+      .catch(() => {})
+      .then(async () => {
+        const row = rowsRef.current.find((r) => r.id === id);
+        if (!row) return;
+        try {
+          await persist(row);
+        } catch (e) {
+          setLedgerError(
+            e instanceof Error
+              ? `Não salvou "${row.descricao || "linha"}": ${e.message}`
+              : "Não conseguiu salvar uma linha da planilha.",
+          );
+        }
+      });
+    chainsRef.current[id] = next;
   };
 
   const add = async () => {
@@ -104,8 +126,26 @@ export function ClientLedger({
   };
 
   const remove = async (id: string) => {
+    const removed = rowsRef.current.find((r) => r.id === id);
+    const removedIndex = rowsRef.current.findIndex((r) => r.id === id);
     setRows((r) => r.filter((x) => x.id !== id));
-    await deleteClientEntry(id);
+    try {
+      const res = await deleteClientEntry(id);
+      if (!res.ok) throw new Error(res.error);
+    } catch (e) {
+      // Reverte a remoção otimista — sem isso a linha sumia da tela mesmo
+      // quando a exclusão falhava no servidor (ex.: sessão expirada).
+      if (removed) {
+        setRows((r) => {
+          const next = [...r];
+          next.splice(Math.min(removedIndex, next.length), 0, removed);
+          return next;
+        });
+      }
+      setLedgerError(
+        e instanceof Error ? e.message : "Não conseguiu excluir a linha.",
+      );
+    }
   };
 
   const onStatus = (row: Row, v: string) => {
@@ -116,9 +156,14 @@ export function ClientLedger({
 
   const saveNotes = async () => {
     setNotesState("saving");
-    await updateClientNotes(clientId, notes);
-    setNotesState("saved");
-    setTimeout(() => setNotesState("idle"), 1500);
+    try {
+      const res = await updateClientNotes(clientId, notes);
+      if (!res.ok) throw new Error(res.error);
+      setNotesState("saved");
+      setTimeout(() => setNotesState("idle"), 1500);
+    } catch {
+      setNotesState("error");
+    }
   };
 
   const total = rows.reduce((s, r) => s + (parseFloat(r.valor) || 0), 0);
@@ -144,6 +189,10 @@ export function ClientLedger({
             Nova linha
           </Button>
         </div>
+
+        {ledgerError && (
+          <p className="text-xs text-destructive">{ledgerError}</p>
+        )}
 
         {rows.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border bg-card/40 p-5 text-center text-xs text-muted-foreground">
@@ -296,6 +345,9 @@ export function ClientLedger({
               <>
                 <Check className="h-3 w-3 text-positive" /> salvo
               </>
+            )}
+            {notesState === "error" && (
+              <span className="text-destructive">não salvou — tente de novo</span>
             )}
           </span>
         </div>

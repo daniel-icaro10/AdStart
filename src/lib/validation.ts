@@ -47,8 +47,8 @@ export const assetSchema = z.object({
   conteudo: z.string().max(8000).optional().default(""),
   // custo de aquisição (R$) — quanto você pagou; alimenta o financeiro.
   custoAquisicao: custoOpcional,
-  // preço de venda (R$). Vazio/ inválido → 0.
-  valor: z.coerce.number().min(0).catch(0).default(0),
+  // preço de venda (R$) — obrigatório (sem isso o card fica sem preço na vitrine).
+  valor: z.coerce.number().positive("Informe o preço de venda"),
   // preço antigo "de" (R$) — riscado no card com % de desconto. Vazio → null.
   precoAntigo: custoOpcional,
   // imagens: data URLs (base64), no máximo 3.

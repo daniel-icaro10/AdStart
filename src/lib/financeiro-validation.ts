@@ -52,7 +52,7 @@ export const ativoFinanceiroSchema = ativoRefSchema.extend({
 
 /** Marcar como vendido: precoVenda OBRIGATÓRIO (em R$). unidades só p/ páginas/perfis. */
 export const venderSchema = ativoRefSchema.extend({
-  precoVenda: z.coerce.number().min(0, "Informe o preço de venda"),
+  precoVenda: z.coerce.number().positive("Informe o preço de venda"),
   unidades: z.coerce.number().int().min(1).catch(1).default(1),
   comprador: z.string().trim().max(160).optional().default(""),
   dataSaida: dataOpcional,

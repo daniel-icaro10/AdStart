@@ -222,10 +222,13 @@ export function AssetForm({ asset, onSuccess, onCancel }: AssetFormProps) {
           <Input
             type="number"
             step="0.01"
-            min="0"
+            min="0.01"
             placeholder="Ex: 4800"
-            {...register("valor")}
+            {...register("valor", { required: "Informe o preço de venda" })}
           />
+          {errors.valor && (
+            <p className="text-xs text-destructive">{errors.valor.message}</p>
+          )}
         </div>
       </div>
 

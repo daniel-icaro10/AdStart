@@ -33,6 +33,7 @@ import {
   registrarPagamento,
 } from "@/app/admin/actions";
 import { formatCurrency } from "@/lib/format";
+import { avancarUmMes } from "@/lib/dates";
 import type { ClientWithPlan } from "@/types";
 import type { RentalPlan } from "@prisma/client";
 
@@ -77,18 +78,6 @@ const TONE_CLASS: Record<Tone, string> = {
   muted: "text-muted-foreground",
 };
 
-/** Avança uma data em 1 mês (UTC), mantendo o dia (clamp no fim do mês). */
-function avancarUmMes(d: Date): Date {
-  const dia = d.getUTCDate();
-  const r = new Date(d);
-  r.setUTCDate(1);
-  r.setUTCMonth(r.getUTCMonth() + 1);
-  const ultimoDia = new Date(
-    Date.UTC(r.getUTCFullYear(), r.getUTCMonth() + 1, 0),
-  ).getUTCDate();
-  r.setUTCDate(Math.min(dia, ultimoDia));
-  return r;
-}
 
 /**
  * CRM simples de aluguéis: board de clientes com vencimento, plano e status.
@@ -184,6 +173,10 @@ export function ClientsManager({
         tabIndex={0}
         onClick={() => openEdit(c)}
         onKeyDown={(e) => {
+          // Deixa os botões internos (pagamento/aviso/excluir) tratarem seu
+          // próprio Enter/Espaço — sem isso o preventDefault aqui cancelava
+          // a ativação nativa deles quando o foco estava num botão filho.
+          if (e.target !== e.currentTarget) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             openEdit(c);

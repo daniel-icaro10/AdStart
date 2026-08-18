@@ -1,4 +1,5 @@
 import type { NextAuthOptions } from "next-auth";
+import { getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
@@ -32,7 +33,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials, req) {
         // 1. Rate limit por IP — barra força bruta antes de tocar o banco.
         const ip = getClientIp(req as { headers?: Record<string, string> });
-        const rl = checkLoginRateLimit(ip);
+        const rl = await checkLoginRateLimit(ip);
         if (!rl.allowed) {
           throw new Error(
             `Muitas tentativas. Tente novamente em ${rl.retryAfterSeconds}s.`,
@@ -96,3 +97,13 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+/**
+ * Garante que há um admin autenticado antes de qualquer mutação.
+ * Única fonte de verdade — antes copiada igual em admin/actions.ts,
+ * financeiro/actions.ts e financeiro/custos/actions.ts.
+ */
+export async function requireAdmin(): Promise<void> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) throw new Error("Não autorizado.");
+}

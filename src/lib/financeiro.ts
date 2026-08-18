@@ -294,13 +294,33 @@ export interface PontoMensal {
   lucro: number;
 }
 
-/** Série dos últimos N meses: investimento × receita × lucro (BRL). */
-export async function getSerieMensal(meses = 6): Promise<PontoMensal[]> {
+/** Dados-base para cálculo financeiro — busque uma vez e reaproveite entre chamadas. */
+export interface DadosFinanceirosBase {
+  ativos: AtivoFinanceiro[];
+  custos: CustoSerializado[];
+  taxaAtual: number;
+}
+
+/** Busca ativos + custos + taxa em paralelo (uma vez só). */
+export async function getDadosFinanceirosBase(): Promise<DadosFinanceirosBase> {
   const [ativos, custos, taxaAtual] = await Promise.all([
     getAtivosFinanceiros(),
     getCustosOperacionais(),
     getTaxaAtual(),
   ]);
+  return { ativos, custos, taxaAtual };
+}
+
+/**
+ * Série dos últimos N meses: investimento × receita × lucro (BRL).
+ * Aceita `base` pré-carregado (via `getDadosFinanceirosBase`) para evitar
+ * refazer as mesmas 3 queries quando chamada junto de `getMetricasFinanceiras`.
+ */
+export async function getSerieMensal(
+  meses = 6,
+  base?: DadosFinanceirosBase,
+): Promise<PontoMensal[]> {
+  const { ativos, custos, taxaAtual } = base ?? (await getDadosFinanceirosBase());
   const now = new Date();
   const out: PontoMensal[] = [];
   for (let i = meses - 1; i >= 0; i--) {
@@ -324,15 +344,16 @@ export async function getSerieMensal(meses = 6): Promise<PontoMensal[]> {
   return out;
 }
 
-/** Ponto de entrada principal: métricas financeiras de um período. */
+/**
+ * Ponto de entrada principal: métricas financeiras de um período.
+ * Aceita `base` pré-carregado (via `getDadosFinanceirosBase`) para evitar
+ * refazer as mesmas 3 queries quando chamada junto de `getSerieMensal`.
+ */
 export async function getMetricasFinanceiras(
   periodo: PeriodoFiltro,
+  base?: DadosFinanceirosBase,
 ): Promise<MetricasFinanceiras> {
-  const [ativos, custos, taxaAtual] = await Promise.all([
-    getAtivosFinanceiros(),
-    getCustosOperacionais(),
-    getTaxaAtual(),
-  ]);
+  const { ativos, custos, taxaAtual } = base ?? (await getDadosFinanceirosBase());
   return calcularMetricas(ativos, custos, periodo, taxaAtual);
 }
 

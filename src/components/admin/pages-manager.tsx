@@ -74,6 +74,7 @@ export function PagesManager({
         tabIndex={0}
         onClick={() => openEdit(p)}
         onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             openEdit(p);

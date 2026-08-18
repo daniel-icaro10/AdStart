@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   venderSchema,
@@ -13,11 +12,6 @@ import {
 } from "@/lib/financeiro-validation";
 
 export type FinanceiroResult = { ok: true } | { ok: false; error: string };
-
-async function requireAdmin() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) throw new Error("Não autorizado.");
-}
 
 // ─── Detalhe do ativo (identificação) ──────────────────────────────────────────
 
@@ -238,8 +232,17 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
     }
     const custo =
       page.custoAquisicao != null ? Number(page.custoAquisicao) : null;
-    await prisma.$transaction([
-      prisma.sale.createMany({
+
+    // Guarda atômica: decrementa só se ainda houver `qtd` unidades E o status
+    // continuar em estoque no momento exato do UPDATE (evita oversell por
+    // cliques duplos/abas concorrentes e venda de página já PERDIDA).
+    const vendida = await prisma.$transaction(async (tx) => {
+      const guard = await tx.page.updateMany({
+        where: { id, status: { in: EM_ESTOQUE }, quantidade: { gte: qtd } },
+        data: { quantidade: { decrement: qtd } },
+      });
+      if (guard.count === 0) return false;
+      await tx.sale.createMany({
         data: Array.from({ length: qtd }, () => ({
           pageId: id,
           preco: precoVenda,
@@ -247,12 +250,16 @@ export async function venderAtivo(input: unknown): Promise<FinanceiroResult> {
           comprador: comprador || null,
           data,
         })),
-      }),
-      prisma.page.update({
-        where: { id },
-        data: { quantidade: { decrement: qtd } },
-      }),
-    ]);
+      });
+      return true;
+    });
+
+    if (!vendida) {
+      return {
+        ok: false,
+        error: "Estoque mudou nesse meio tempo — recarregue a página e tente de novo.",
+      };
+    }
     revalidate();
     return { ok: true };
   }

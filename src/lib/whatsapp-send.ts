@@ -23,7 +23,11 @@ export function normalizePhone(
   if (!contato) return null;
   let d = contato.replace(/\D/g, "");
   if (d.length < 10) return null; // provavelmente não é um telefone
-  if (!d.startsWith("55") && (d.length === 10 || d.length === 11)) d = "55" + d;
+  // DDI+DDD+número nunca dá 10 ou 11 dígitos (só DDD+número, sem DDI, dá).
+  // Não checar se já "começa com 55": um DDD 55 (Santa Maria/RS) faz um
+  // número local de 11 dígitos começar com "55" por coincidência, e isso
+  // fazia a função pular o DDI achando que ele já estava lá.
+  if (d.length === 10 || d.length === 11) d = "55" + d;
   return d;
 }
 

@@ -26,6 +26,13 @@ export function AssetsFilters({ fornecedores }: { fornecedores: string[] }) {
   const params = useSearchParams();
   const [busca, setBusca] = React.useState(params.get("q") ?? "");
 
+  // Sem isso, voltar/avançar no navegador atualiza a tabela (via URL) mas
+  // deixava o campo de busca mostrando o texto antigo, contradizendo o que
+  // estava de fato filtrado.
+  React.useEffect(() => {
+    setBusca(params.get("q") ?? "");
+  }, [params]);
+
   const push = (next: URLSearchParams) => {
     next.delete("page"); // volta pra página 1 ao filtrar
     next.set("tab", "financeiro"); // a tabela vive na sub-aba Financeiro de Ativos

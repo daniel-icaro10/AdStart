@@ -53,6 +53,10 @@ export function RentalsManager({ plans }: { plans: RentalPlan[] }) {
         tabIndex={0}
         onClick={() => openEdit(p)}
         onKeyDown={(e) => {
+          // Deixa os botões internos (ex.: excluir) tratarem seu próprio
+          // Enter/Espaço — sem isso o preventDefault aqui cancelava a
+          // ativação nativa deles quando o foco estava num botão filho.
+          if (e.target !== e.currentTarget) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             openEdit(p);

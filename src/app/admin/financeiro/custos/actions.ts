@@ -1,17 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { custoOperacionalSchema } from "@/lib/financeiro-validation";
 import type { FinanceiroResult } from "@/app/admin/financeiro/actions";
-
-async function requireAdmin() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) throw new Error("Não autorizado.");
-}
 
 function revalidate() {
   revalidatePath("/admin/financeiro");

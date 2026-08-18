@@ -32,6 +32,17 @@ export function PeriodSelector({ preset, inicio, fim }: PeriodSelectorProps) {
   const [di, setDi] = React.useState(inicio ?? "");
   const [df, setDf] = React.useState(fim ?? "");
 
+  // `inicio`/`fim` são props vindas do servidor (URL) — sem isso, trocar de
+  // "Personalizado" pra um preset e voltar (ou usar voltar/avançar do
+  // navegador) podia deixar os campos mostrando um intervalo que não bate
+  // mais com a URL.
+  React.useEffect(() => {
+    setDi(inicio ?? "");
+  }, [inicio]);
+  React.useEffect(() => {
+    setDf(fim ?? "");
+  }, [fim]);
+
   const setPreset = (value: string) => {
     const sp = new URLSearchParams(params.toString());
     sp.set("periodo", value);

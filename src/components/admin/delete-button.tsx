@@ -32,14 +32,19 @@ export function DeleteButton({ id, label, action }: DeleteButtonProps) {
   const handleDelete = async () => {
     setPending(true);
     setError(null);
-    const res = await action(id);
-    setPending(false);
-    if (!res.ok) {
-      setError(res.error);
-      return;
+    try {
+      const res = await action(id);
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+      setOpen(false);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Algo deu errado. Tente de novo.");
+    } finally {
+      setPending(false);
     }
-    setOpen(false);
-    router.refresh();
   };
 
   return (

@@ -155,10 +155,22 @@ export function AssetsTableClient({
                 const emEstoque =
                   !ehVenda &&
                   (status === "DISPONIVEL" || status === "RESERVADO");
+                // Vendido (BM direto ou venda de unidade de página) não tem
+                // "preço previsto" — mapSale sempre devolve null ali, e um BM
+                // vendido pode nunca ter passado por "previsto". A margem
+                // real, nesse caso, vem do preço de venda de fato. Só ativos
+                // ainda em estoque usam o preço previsto (projeção).
+                const vendido = status === "VENDIDO";
                 const margem =
-                  a.precoPrevisto != null && a.custoAquisicao != null
-                    ? a.precoPrevisto - a.custoAquisicao
-                    : null;
+                  a.custoAquisicao == null
+                    ? null
+                    : vendido
+                      ? a.precoVenda != null
+                        ? a.precoVenda - a.custoAquisicao
+                        : null
+                      : a.precoPrevisto != null
+                        ? a.precoPrevisto - a.custoAquisicao
+                        : null;
                 const grupoLabel =
                   a.grupo === "BM"
                     ? "BM"
@@ -352,10 +364,15 @@ function useSubmit(action: (input: unknown) => Promise<FinanceiroResult>) {
   const run = async (payload: unknown, onOk: () => void) => {
     setPending(true);
     setError(null);
-    const res = await action(payload);
-    setPending(false);
-    if (res.ok) onOk();
-    else setError(res.error);
+    try {
+      const res = await action(payload);
+      if (res.ok) onOk();
+      else setError(res.error);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Algo deu errado. Tente de novo.");
+    } finally {
+      setPending(false);
+    }
   };
   return { pending, error, run };
 }
@@ -435,7 +452,7 @@ function VenderForm({ ativo, onDone }: { ativo: Ativo; onDone: () => void }) {
           <Input
             type="number"
             step="0.01"
-            min="0"
+            min="0.01"
             required
             autoFocus
             value={precoVenda}
@@ -872,12 +889,21 @@ function DetalheView({
   React.useEffect(() => {
     let active = true;
     setLoading(true);
-    getAtivoDetalhe(ativo.origem, ativo.id).then((d) => {
-      if (active) {
-        setData(d);
-        setLoading(false);
-      }
-    });
+    getAtivoDetalhe(ativo.origem, ativo.id)
+      .then((d) => {
+        if (active) {
+          setData(d);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        // Sem isso o spinner girava pra sempre se a busca falhasse (ex.:
+        // sessão expirada). Cai no mesmo estado de "não encontrado".
+        if (active) {
+          setData(null);
+          setLoading(false);
+        }
+      });
     return () => {
       active = false;
     };

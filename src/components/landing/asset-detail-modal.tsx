@@ -207,19 +207,21 @@ export function AssetDetailModal({
           </div>
         )}
 
-        {/* CTA */}
-        <Button
-          asChild
-          variant="whatsapp"
-          size="lg"
-          className="w-full"
-          disabled={statusVenda === "VENDIDO"}
-        >
-          <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+        {/* CTA — nunca usar asChild aqui: um <a> não obedece disabled, então o
+            botão precisa virar de fato um <button disabled> quando vendido. */}
+        {statusVenda === "VENDIDO" ? (
+          <Button variant="whatsapp" size="lg" className="w-full" disabled>
             <MessageCircle className="h-5 w-5" />
-            Tenho interesse → WhatsApp
-          </a>
-        </Button>
+            Vendido
+          </Button>
+        ) : (
+          <Button asChild variant="whatsapp" size="lg" className="w-full">
+            <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="h-5 w-5" />
+              Tenho interesse → WhatsApp
+            </a>
+          </Button>
+        )}
       </DialogContent>
     </Dialog>
 

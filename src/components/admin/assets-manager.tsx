@@ -91,6 +91,7 @@ export function AssetsManager({
         tabIndex={0}
         onClick={() => openEdit(a)}
         onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             openEdit(a);

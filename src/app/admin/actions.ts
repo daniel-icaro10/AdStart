@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   assetSchema,
@@ -18,16 +17,11 @@ import {
   enviarAvisoParaCliente,
 } from "@/lib/cobrancas";
 import { CATEGORY_ORDER_KEY } from "@/lib/settings";
+import { avancarUmMes } from "@/lib/dates";
 
 export type ActionResult =
   | { ok: true; id?: string }
   | { ok: false; error: string };
-
-/** Garante que há um admin autenticado antes de qualquer mutação. */
-async function requireAdmin() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) throw new Error("Não autorizado.");
-}
 
 function revalidateAssets() {
   revalidatePath("/");
@@ -477,19 +471,6 @@ export async function enviarAvisoCliente(
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
-}
-
-/** Avança uma data em 1 mês (em UTC), mantendo o dia (com clamp no fim do mês). */
-function avancarUmMes(d: Date): Date {
-  const dia = d.getUTCDate();
-  const r = new Date(d);
-  r.setUTCDate(1);
-  r.setUTCMonth(r.getUTCMonth() + 1);
-  const ultimoDia = new Date(
-    Date.UTC(r.getUTCFullYear(), r.getUTCMonth() + 1, 0),
-  ).getUTCDate();
-  r.setUTCDate(Math.min(dia, ultimoDia));
-  return r;
 }
 
 /**

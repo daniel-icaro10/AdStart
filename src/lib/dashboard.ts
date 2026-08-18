@@ -4,8 +4,7 @@
  */
 import { prisma } from "./prisma";
 import {
-  getAtivosFinanceiros,
-  getTaxaAtual,
+  getDadosFinanceirosBase,
   getMetricasFinanceiras,
   getSerieMensal,
   periodoMesAtual,
@@ -83,11 +82,14 @@ function diasDesde(d: Date | null): number {
 export async function getDashboardData(
   periodo: PeriodoFiltro = periodoMesAtual(),
 ): Promise<DashboardData> {
-  const [ativos, taxa, metricas, serie, catGroup] = await Promise.all([
-    getAtivosFinanceiros(),
-    getTaxaAtual(),
-    getMetricasFinanceiras(periodo),
-    getSerieMensal(6),
+  // Busca ativos/custos/taxa UMA vez e reaproveita entre métricas e série —
+  // antes cada uma refazia as mesmas 3 queries por conta própria (2-3x por
+  // carregamento da página, incluindo o histórico inteiro de vendas).
+  const base = await getDadosFinanceirosBase();
+  const { ativos, taxaAtual: taxa } = base;
+  const [metricas, serie, catGroup] = await Promise.all([
+    getMetricasFinanceiras(periodo, base),
+    getSerieMensal(6, base),
     prisma.asset.groupBy({
       by: ["categoria"],
       where: { statusVenda: { in: ["DISPONIVEL", "RESERVADO"] } },
