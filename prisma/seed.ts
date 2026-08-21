@@ -16,7 +16,10 @@ const prisma = new PrismaClient();
 const BCRYPT_COST = 12;
 
 async function seedAdmin() {
-  const email = process.env.ADMIN_EMAIL;
+  // Mesma normalização do login (loginSchema, src/lib/validation.ts) — sem
+  // isso um ADMIN_EMAIL com maiúscula gravaria um registro que o login
+  // (que sempre compara em minúsculas) nunca encontraria.
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD;
   const name = process.env.ADMIN_NAME ?? "Administrador";
 
